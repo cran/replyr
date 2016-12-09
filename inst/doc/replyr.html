@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="John Mount" />
+
+<meta name="date" content="2016-12-08" />
+
+<title>replyr</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+
+
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">replyr</h1>
+<h4 class="author"><em>John Mount</em></h4>
+<h4 class="date"><em>2016-12-08</em></h4>
+
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>It comes as a bit of a shock for <a href="https://cran.r-project.org">R</a> <a href="https://CRAN.R-project.org/package=dplyr"><code>dplyr</code></a> users when they switch from using a <code>tbl</code> implementation based on R in-memory <code>data.frame</code>s to one based on a remote database or service. A lot of the power and convenience of the <code>dplyr</code> notation is hard to maintain with these more restricted data service providers. Things that work locally can’t always be used remotely at scale. It is emphatically not yet the case that one can practice with <code>dplyr</code> in one modality and hope to move to another back-end without significant debugging and work-arounds. The <a href="https://github.com/WinVector/replyr"><code>replyr</code></a> package attempts to provide practical data manipulation affordances.</p>
+<p><code>replyr</code> supplies methods to get a grip on working with remote <code>tbl</code> sources (<code>SQL</code> databases, <code>Spark</code>) through <code>dplyr</code>. The idea is to add convenience functions to make such tasks more like working with an in-memory <code>data.frame</code>. Results still do depend on which <code>dplyr</code> service you use, but with <code>replyr</code> you have fairly uniform access to some useful functions.</p>
+<p>Primary <code>replyr</code> services include:</p>
+<ul>
+<li><code>replyr::let</code></li>
+<li><code>replyr::gapply</code></li>
+<li><code>replyr::replyr_*</code></li>
+</ul>
+</div>
+<div id="replyrlet" class="section level2">
+<h2><code>replyr::let</code></h2>
+<p><code>replyr::let</code> allows execution of arbitrary code with substituted variable names (note this is subtly different than binding values for names as with <code>base::substitute</code>). This allows the user to write arbitrary <code>dplyr</code> code in the case of <a href="http://www.win-vector.com/blog/2016/12/parametric-variable-names-and-dplyr/">“parametric variable names”</a> (that is when variable names are not known at coding time, but will become available later at run time as values in other variables) without directly using the <code>dplyr</code> “underbar forms” (and the direct use of <code>lazyeval::interp</code> and <code>.dots=stats::setNames</code> to use the <code>dplyr</code> “underbar forms”).</p>
+<p>Example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">'dplyr'</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># nice parametric function we write</span>
+ComputeRatioOfColumns &lt;-<span class="st"> </span>function(d,NumeratorColumnName,DenominatorColumnName,ResultColumnName) {
+  replyr::<span class="kw">let</span>(
+    <span class="dt">alias=</span><span class="kw">list</span>(<span class="dt">NumeratorColumn=</span>NumeratorColumnName,
+               <span class="dt">DenominatorColumn=</span>DenominatorColumnName,
+               <span class="dt">ResultColumn=</span>ResultColumnName),
+    <span class="dt">expr=</span>{
+      <span class="co"># (pretend) large block of code written with concrete column names.</span>
+      <span class="co"># due to the let wrapper in this function it will behave as if it was</span>
+      <span class="co"># using the specified paremetric column names.</span>
+      d %&gt;%<span class="st"> </span><span class="kw">mutate</span>(<span class="dt">ResultColumn=</span>NumeratorColumn/DenominatorColumn)
+    })()
+}
+
+<span class="co"># example data</span>
+d &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">a=</span><span class="dv">1</span>:<span class="dv">5</span>,<span class="dt">b=</span><span class="dv">3</span>:<span class="dv">7</span>)
+
+<span class="co"># example application</span>
+d %&gt;%<span class="st"> </span><span class="kw">ComputeRatioOfColumns</span>(<span class="st">'a'</span>,<span class="st">'b'</span>,<span class="st">'c'</span>)
+<span class="co">#&gt;   a b         c</span>
+<span class="co">#&gt; 1 1 3 0.3333333</span>
+<span class="co">#&gt; 2 2 4 0.5000000</span>
+<span class="co">#&gt; 3 3 5 0.6000000</span>
+<span class="co">#&gt; 4 4 6 0.6666667</span>
+<span class="co">#&gt; 5 5 7 0.7142857</span></code></pre></div>
+<p><code>replyr::let</code> makes construction of abstract functions over <code>dplyr</code> controlled data much easier. It is designed for the case where the “<code>expr</code>” block is large sequence of statements and pipelines.</p>
+<p>Note that <code>base::substitute</code> is not powerfull enough to remap both names and values without some helper notation (see <a href="http://stackoverflow.com/questions/22005419/dplyr-without-hard-coding-the-variable-names">here</a> for an using substitute. What we mean by this is show below:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">'dplyr'</span>)</code></pre></div>
+<p>Substitute with <code>quote</code> notation.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">d &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">Sepal_Length=</span><span class="kw">c</span>(<span class="fl">5.8</span>,<span class="fl">5.7</span>),
+                <span class="dt">Sepal_Width=</span><span class="kw">c</span>(<span class="fl">4.0</span>,<span class="fl">4.4</span>),
+                <span class="dt">Species=</span><span class="st">'setosa'</span>,
+                <span class="dt">rank=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))
+<span class="kw">eval</span>(<span class="kw">substitute</span>(d %&gt;%<span class="st"> </span><span class="kw">mutate</span>(<span class="dt">RankColumn=</span>RankColumn<span class="dv">-1</span>),
+                <span class="kw">list</span>(<span class="dt">RankColumn=</span><span class="kw">quote</span>(rank))))
+<span class="co">#&gt;   Sepal_Length Sepal_Width Species rank RankColumn</span>
+<span class="co">#&gt; 1          5.8         4.0  setosa    1          0</span>
+<span class="co">#&gt; 2          5.7         4.4  setosa    2          1</span></code></pre></div>
+<p>Substitute with <code>as.name</code> notation.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">eval</span>(<span class="kw">substitute</span>(d %&gt;%<span class="st"> </span><span class="kw">mutate</span>(<span class="dt">RankColumn=</span>RankColumn<span class="dv">-1</span>),
+                <span class="kw">list</span>(<span class="dt">RankColumn=</span><span class="kw">as.name</span>(<span class="st">'rank'</span>))))
+<span class="co">#&gt;   Sepal_Length Sepal_Width Species rank RankColumn</span>
+<span class="co">#&gt; 1          5.8         4.0  setosa    1          0</span>
+<span class="co">#&gt; 2          5.7         4.4  setosa    2          1</span></code></pre></div>
+<p>Substitute without extra notation (errors-out).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">eval</span>(<span class="kw">substitute</span>(d %&gt;%<span class="st"> </span><span class="kw">mutate</span>(<span class="dt">RankColumn=</span>RankColumn<span class="dv">-1</span>),
+                <span class="kw">list</span>(<span class="dt">RankColumn=</span><span class="st">'rank'</span>)))
+<span class="co">#&gt; Error in eval(expr, envir, enclos): non-numeric argument to binary operator</span></code></pre></div>
+<p>Notice in both working cases the <code>dplyr::mutate</code> result landed in a column named <code>RankColumn</code> and not in the desired column <code>rank</code>. The <code>replyr::let</code> form is concise and works correctly.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">replyr::<span class="kw">let</span>(
+  <span class="dt">alias=</span><span class="kw">list</span>(<span class="dt">RankColumn=</span><span class="st">'rank'</span>),
+  d %&gt;%<span class="st"> </span><span class="kw">mutate</span>(<span class="dt">RankColumn=</span>RankColumn<span class="dv">-1</span>)
+)()
+<span class="co">#&gt;   Sepal_Length Sepal_Width Species rank</span>
+<span class="co">#&gt; 1          5.8         4.0  setosa    0</span>
+<span class="co">#&gt; 2          5.7         4.4  setosa    1</span></code></pre></div>
+<p>Note <code>replyr::let</code> only controls name bindings in the the scope of the <code>expr={}</code> block, and not inside functions called in the block. To be clear <code>replyr::let</code> is re-writing function arguments (which is how we use <code>dplyr::mutate</code> in the above example), but it is not re-writing data (which is why deeper in functions don’t see re-namings). This means one can not paramaterize a function from the outside. For example the following function can only be used parametrically if we re-map the data frame, or if <code>dplyr</code> itself (or a data adapter) implemented something like the view stack proposal found <a href="http://www.win-vector.com/blog/2016/12/parametric-variable-names-and-dplyr/">here</a>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">'dplyr'</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># example data</span>
+d &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">a=</span><span class="dv">1</span>:<span class="dv">5</span>,<span class="dt">b=</span><span class="dv">3</span>:<span class="dv">7</span>)
+
+<span class="co"># original function we do not have control of</span>
+ComputeRatioOfColumnsHardCoded &lt;-<span class="st"> </span>function(d) {
+  d %&gt;%<span class="st"> </span><span class="kw">mutate</span>(<span class="dt">ResultColumn=</span>NumeratorColumn/DenominatorColumn)
+}
+
+<span class="co"># wrapper to make function look parametric</span>
+ComputeRatioOfColumnsWrapped &lt;-<span class="st"> </span>function(d,NumeratorColumnName,DenominatorColumnName,ResultColumnName) {
+  d %&gt;%<span class="st"> </span>replyr::<span class="kw">replyr_mapRestrictCols</span>(<span class="kw">list</span>(<span class="dt">NumeratorColumn=</span><span class="st">'a'</span>,
+                                            <span class="dt">DenominatorColumn=</span><span class="st">'b'</span>)) %&gt;%
+<span class="st">    </span>
+<span class="st">    </span><span class="kw">ComputeRatioOfColumnsHardCoded</span>() %&gt;%
+<span class="st">    </span>replyr::<span class="kw">replyr_mapRestrictCols</span>(<span class="kw">list</span>(<span class="dt">a=</span><span class="st">'NumeratorColumn'</span>,
+                                        <span class="dt">b=</span><span class="st">'DenominatorColumn'</span>,
+                                        <span class="dt">c=</span><span class="st">'ResultColumn'</span>))
+}
+
+<span class="co"># example application</span>
+d %&gt;%<span class="st"> </span><span class="kw">ComputeRatioOfColumnsWrapped</span>(<span class="st">'a'</span>,<span class="st">'b'</span>,<span class="st">'c'</span>)
+<span class="co">#&gt;   a b         c</span>
+<span class="co">#&gt; 1 1 3 0.3333333</span>
+<span class="co">#&gt; 2 2 4 0.5000000</span>
+<span class="co">#&gt; 3 3 5 0.6000000</span>
+<span class="co">#&gt; 4 4 6 0.6666667</span>
+<span class="co">#&gt; 5 5 7 0.7142857</span></code></pre></div>
+</div>
+<div id="replyrgapply" class="section level2">
+<h2><code>replyr::gapply</code></h2>
+<p><code>replyr::gapply</code> is a “grouped ordered apply” data operation. Many calculations can be written in terms of this primitive, including per-group rank calculation (assuming your data services supports window functions), per-group summaries, and per-group selections. It is meant to be a specialization of <a href="https://www.jstatsoft.org/article/view/v040i01">“The Split-Apply-Combine”</a> strategy with all three steps wrapped into a single operator.</p>
+<p>Example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">'dplyr'</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">d &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">group=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>),
+                <span class="dt">order=</span><span class="kw">c</span>(.<span class="dv">1</span>,.<span class="dv">2</span>,.<span class="dv">3</span>,.<span class="dv">4</span>,.<span class="dv">5</span>))
+rank_in_group &lt;-<span class="st"> </span>. %&gt;%<span class="st"> </span><span class="kw">mutate</span>(<span class="dt">constcol=</span><span class="dv">1</span>) %&gt;%
+<span class="st">          </span><span class="kw">mutate</span>(<span class="dt">rank=</span><span class="kw">cumsum</span>(constcol)) %&gt;%<span class="st"> </span><span class="kw">select</span>(-constcol)
+d %&gt;%<span class="st"> </span>replyr::<span class="kw">gapply</span>(<span class="st">'group'</span>,rank_in_group,<span class="dt">ocolumn=</span><span class="st">'order'</span>,<span class="dt">decreasing=</span><span class="ot">TRUE</span>)
+<span class="co">#&gt; # A tibble: 5 × 3</span>
+<span class="co">#&gt;   group order  rank</span>
+<span class="co">#&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;</span>
+<span class="co">#&gt; 1     2   0.5     1</span>
+<span class="co">#&gt; 2     2   0.4     2</span>
+<span class="co">#&gt; 3     2   0.3     3</span>
+<span class="co">#&gt; 4     1   0.2     1</span>
+<span class="co">#&gt; 5     1   0.1     2</span></code></pre></div>
+<p>The user supplies a function or pipleline that is meant to be applied per-group and the <code>replyr::gapply</code> wrapper orchestrates the calculation. In this example <code>rank_in_group</code> was assumed to know the column names in our data, so we directly used them instead of abstracting through <code>replyr::let</code>. <code>replyr::gapply</code> defaults to using <code>dplyr::group_by</code> as its splitting or partitioning control, but can also perform actual splits using ‘split’ (‘base::split’) or ‘extract’ (sequential extraction). Semantics are slightly different between cases given how <code>dplyr</code> treats grouping columns, the issue is illustrated in the difference between the definitions of <code>sumgroupS</code> and <code>sumgroupG</code> in <a href="https://github.com/WinVector/replyr/blob/master/checks/gapply.md">this example</a>).</p>
+</div>
+<div id="replyrreplyr_" class="section level2">
+<h2><code>replyr::replyr_*</code></h2>
+<p>The <code>replyr::replyr_*</code> functions are all convenience functions supplying common functionality (such as <code>replyr::replyr_nrow</code>) that works across many data services providers. These are prefixed (instead of being <code>S3</code> or <code>S4</code> methods) so they do not interfere with common methods. Many of these functions can expensive (which is why <code>dplyr</code> does not provide them as a default), or are patching around corner cases (which is why these functions appear to duplicate <code>base::</code> and <code>dplyr::</code> capabilities). The issues <code>replyr::replyr_*</code> claim to patch around have all been filed as issues on the appropriate <code>R</code> packages and are documented <a href="https://github.com/WinVector/replyr/tree/master/issues">here</a> (to confirm they are not phantoms).</p>
+<p>Example: <code>replyr::replyr_summary</code> working on a database service (when <code>base::summary</code> does not).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">d &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">x=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">2</span>),<span class="dt">y=</span><span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">5</span>,<span class="ot">NA</span>),<span class="dt">z=</span><span class="kw">c</span>(<span class="ot">NA</span>,<span class="st">'a'</span>,<span class="st">'b'</span>),
+                <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>)
+fnam &lt;-<span class="st"> </span><span class="ot">NULL</span>
+if (<span class="kw">requireNamespace</span>(<span class="st">&quot;RSQLite&quot;</span>)) {
+  fnam &lt;-<span class="st"> </span><span class="kw">tempfile</span>(<span class="dt">pattern =</span> <span class="st">&quot;replyr_doc_sqlite&quot;</span>, <span class="dt">tmpdir =</span> <span class="kw">tempdir</span>(), <span class="dt">fileext =</span> <span class="st">&quot;sqlite3&quot;</span>)
+  my_db &lt;-<span class="st"> </span>dplyr::<span class="kw">src_sqlite</span>(fnam, <span class="dt">create =</span> <span class="ot">TRUE</span>)
+  dRemote &lt;-<span class="st"> </span>replyr::<span class="kw">replyr_copy_to</span>(my_db,d,<span class="st">'d'</span>)
+} else {
+  dRemote &lt;-<span class="st"> </span>d <span class="co"># local stand in when we can't make remote</span>
+}
+<span class="co">#&gt; Loading required namespace: RSQLite</span>
+
+<span class="kw">summary</span>(dRemote)
+<span class="co">#&gt;     Length Class          Mode</span>
+<span class="co">#&gt; src 2      src_sqlite     list</span>
+<span class="co">#&gt; ops 3      op_base_remote list</span>
+
+replyr::<span class="kw">replyr_summary</span>(dRemote)
+<span class="co">#&gt;   column index     class nrows nna nunique min max     mean        sd lexmin lexmax</span>
+<span class="co">#&gt; 1      x     1   numeric     3   0       2   1   2 1.666667 0.5773503   &lt;NA&gt;   &lt;NA&gt;</span>
+<span class="co">#&gt; 2      y     2   numeric     3   1       2   3   5 4.000000 1.4142136   &lt;NA&gt;   &lt;NA&gt;</span>
+<span class="co">#&gt; 3      z     3 character     3   1       2  NA  NA       NA        NA      a      b</span></code></pre></div>
+<p>Data types, capabilities, and row-orders all vary a lot as we switch remote data services. But the point of <code>replyr</code> is to provide at least some convenient version of typical functions such as: <code>summary</code>, <code>nrow</code>, unique values, and filter rows by values in a set.</p>
+</div>
+<div id="replyr-data-services" class="section level2">
+<h2><code>replyr</code> Data services</h2>
+<p>This is a <em>very</em> new package with no guarantees or claims of fitness for purpose. Some implemented operations are going to be slow and expensive (part of why they are not exposed in <code>dplyr</code> itself).</p>
+<p>We will probably only ever cover:</p>
+<ul>
+<li>Native <code>data.frame</code>s (and <code>tbl</code>/<code>tibble</code>)</li>
+<li><code>RMySQL</code></li>
+<li><code>RPostgreSQL</code></li>
+<li><code>SQLite</code></li>
+<li><code>sparklyr</code> (<code>Spark</code> 2 preferred)</li>
+</ul>
+</div>
+<div id="additional-functions" class="section level2">
+<h2>Additional functions</h2>
+<p>Additional <code>replyr</code> functions include: <code>replyr::replyr_filter</code> and <code>replyr::replyr_inTest</code>. These are designed to subset data based on a columns values being in a given set. These allow selection of rows by testing membership in a set (very useful for partitioning data). Example below:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">'dplyr'</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">values &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">2</span>)
+dRemote %&gt;%<span class="st"> </span>replyr::<span class="kw">replyr_filter</span>(<span class="st">'x'</span>,values)
+<span class="co">#&gt; Source:   query [?? x 3]</span>
+<span class="co">#&gt; Database: sqlite 3.8.6 [/var/folders/7q/h_jp2vj131g5799gfnpzhdp80000gn/T//RtmpuuWKT9/replyr_doc_sqlite86b66ea8fa8esqlite3]</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;       x     y     z</span>
+<span class="co">#&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;</span>
+<span class="co">#&gt; 1     2     5     a</span>
+<span class="co">#&gt; 2     2    NA     b</span></code></pre></div>
+</div>
+<div id="commentary" class="section level2">
+<h2>Commentary</h2>
+<p>I would like this to become a bit of a <a href="https://en.wikipedia.org/wiki/Stone_Soup">“stone soup”</a> project. If you have a neat function you want to add please contribute a pull request with your attribution and assignment of ownership to <a href="http://www.win-vector.com/">Win-Vector LLC</a> (so Win-Vector LLC can control the code, which we are currently distributing under a GPL3 license) in the code comments.</p>
+<p>There are a few (somewhat incompatible) goals for <code>replyr</code>:</p>
+<ul>
+<li>Providing missing convenience functions that work well over all common <code>dplyr</code> service providers. Examples include <code>replyr_summary</code>, <code>replyr_filter</code>, and <code>replyr_nrow</code>.</li>
+<li>Providing a basis for “row number free” data analysis. SQL back-ends don’t commonly supply row number indexing (or even deterministic order of rows), so a lot of tasks you could do in memory by adjoining columns have to be done through formal key-based joins.</li>
+<li>Providing emulations of functionality missing from non-favored service providers (such as windowing functions, <code>quantile</code>, <code>sample_n</code>, <code>cumsum</code>; missing from <code>SQLite</code> and <code>RMySQL</code>).</li>
+<li>Working around corner case issues, and some variations in semantics.</li>
+<li>Sheer bull-headedness in emulating operations that don’t quite fit into the pure <code>dplyr</code> formulation.</li>
+</ul>
+<p>Good code should fill one important gap and work on a variety of <code>dplyr</code> back ends (you can test <code>RMySQL</code>, and <code>RPostgreSQL</code> using docker as mentioned <a href="http://www.win-vector.com/blog/2016/11/mysql-in-a-container/">here</a> and <a href="http://www.win-vector.com/blog/2016/02/databases-in-containers/">here</a>; <code>sparklyr</code> can be tried in local mode as described <a href="http://spark.rstudio.com">here</a>). I am especially interested in clever “you wouldn’t thing this was efficiently possible, but” solutions (which give us an expanded grammar of useful operators), and replacing current hacks with more efficient general solutions. Targets of interest include <code>sample_n</code> (which isn’t currently implemented for <code>tbl_sqlite</code>), <code>cumsum</code>, and <code>quantile</code> (currently we have an expensive implementation of <code>quantile</code> based on binary search: <code>replyr::replyr_quantile</code>).</p>
+<p><code>replyr</code> services include:</p>
+<ul>
+<li>Moving data into or out of the remote data store (including adding optional row numbers), <code>replyr_copy_to</code> and <code>replyr_copy_from</code>.</li>
+<li>Basic summary info: <code>replyr_nrow</code>, <code>replyr_dim</code>, and <code>replyr_summary</code>.</li>
+<li>Random row sampling (like <code>dplyr::sample_n</code>, but working with more service providers). Some of this functionality is provided by <code>replyr_filter</code> and <code>replyr_inTest</code>.</li>
+<li>Emulating <a href="https://www.jstatsoft.org/article/view/v040i01">The Split-Apply-Combine Strategy</a>, which is the purpose <code>gapply</code>, <code>replyr_split</code>, and <code>replyr_bind_rows</code>.</li>
+<li>Emulating <code>tidyr</code> gather/spread (or pivoting and anti-pivoting), which is the purpose of <code>replyr_gather</code> and <code>replyr_spread</code> (still under development).</li>
+<li>Patching around differences in <code>dplyr</code> services providers (and documenting the reasons for the patches).</li>
+<li>Making use of “parameterized names” much easier (that is: writing code does not know the name of the column it is expected to work over, but instead takes the column name from a user supplied variable).</li>
+</ul>
+<p>Additional desired capabilities of interest include:</p>
+<ul>
+<li><code>cumsum</code> or row numbering (interestingly enough if you have row numbering you can implement cumulative sum in log-n rounds using joins to implement pointer chasing/jumping ideas, but that is unlikely to be practical, <code>lag</code> is enough to generate next pointers, which can be boosted to row-numberings).</li>
+<li>Inserting random values (or even better random unique values) in a remote column. Most service providers have a pseudo-random source you can use.</li>
+</ul>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p><code>replyr</code> is package for speeding up reliable data manipulation using <code>dplyr</code> (especially on databases and <code>Spark</code>). It is also a good central place to collect patches and fixes needed to work around corner cases and semantic variations between versions of data sources (such as <code>Spark 1.6.2</code> versions <code>Spark 2.0.0</code>).</p>
+</div>
+<div id="clean-up" class="section level2">
+<h2>Clean up</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">setdiff</span>(<span class="kw">ls</span>(),<span class="st">'fnam'</span>))
+if(!<span class="kw">is.null</span>(fnam)) {
+  <span class="kw">file.remove</span>(fnam)
+}
+<span class="co">#&gt; [1] TRUE</span></code></pre></div>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
