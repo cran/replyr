@@ -1,4 +1,14 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+This document describes `replyr`, an [R](https://cran.r-project.org) package available from [Github](https://github.com/WinVector/replyr) and [CRAN](https://CRAN.R-project.org/package=replyr).
+
+To install from Github please try:
+
+``` r
+devtools::install_github("WinVector/replyr")
+```
+
+\[Note: the CRAN version of replyr currently has a bug in `replyr_summary` that is now fixed in the Github version. We will update the CRAN version after we get some more tests in place. Also `replyr::let` take one less pair of parenthesis as of version `0.2.0`.\]
+
 Introduction
 ------------
 
@@ -7,6 +17,8 @@ It comes as a bit of a shock for [R](https://cran.r-project.org) [`dplyr`](https
 <a href="https://www.flickr.com/photos/42988571@N08/18029435653" target="_blank"><img src="18029435653_4d64c656c8_z.jpg"> </a>
 
 `replyr` supplies methods to get a grip on working with remote `tbl` sources (`SQL` databases, `Spark`) through `dplyr`. The idea is to add convenience functions to make such tasks more like working with an in-memory `data.frame`. Results still do depend on which `dplyr` service you use, but with `replyr` you have fairly uniform access to some useful functions.
+
+`replyr` uniformly uses standard or paremtric interfaces (names of variables as strings) in favor of name capture so that you can easily program *over* `replyr`.
 
 Primary `replyr` services include:
 
@@ -17,7 +29,7 @@ Primary `replyr` services include:
 `replyr::let`
 -------------
 
-`replyr::let` allows execution of arbitrary code with substituted variable names (note this is subtly different than binding values for names as with `base::substitute`). This allows the user to write arbitrary `dplyr` code in the case of ["parametric variable names"](http://www.win-vector.com/blog/2016/12/parametric-variable-names-and-dplyr/) (that is when variable names are not known at coding time, but will become available later at run time as values in other variables) without directly using the `dplyr` "underbar forms" (and the direct use of `lazyeval::interp` and `.dots=stats::setNames` to use the `dplyr` "underbar forms").
+`replyr::let` allows execution of arbitrary code with substituted variable names (note this is subtly different than binding values for names as with `base::substitute` or `base::with`). This allows the user to write arbitrary `dplyr` code in the case of ["parametric variable names"](http://www.win-vector.com/blog/2016/12/parametric-variable-names-and-dplyr/) (that is when variable names are not known at coding time, but will become available later at run time as values in other variables) without directly using the `dplyr` "underbar forms" (and the direct use of `lazyeval::interp` and `.dots=stats::setNames` to use the `dplyr` "underbar forms").
 
 Example:
 
@@ -37,7 +49,7 @@ ComputeRatioOfColumns <- function(d,NumeratorColumnName,DenominatorColumnName,Re
       # due to the let wrapper in this function it will behave as if it was
       # using the specified paremetric column names.
       d %>% mutate(ResultColumn=NumeratorColumn/DenominatorColumn)
-    })()
+    })
 }
 
 # example data
@@ -55,7 +67,7 @@ d %>% ComputeRatioOfColumns('a','b','c')
 
 `replyr::let` makes construction of abstract functions over `dplyr` controlled data much easier. It is designed for the case where the "`expr`" block is large sequence of statements and pipelines.
 
-Note that `base::substitute` is not powerfull enough to remap both names and values without some helper notation (see [here](http://stackoverflow.com/questions/22005419/dplyr-without-hard-coding-the-variable-names) for an using substitute. What we mean by this is show below:
+Note that `base::substitute` is not powerful enough to remap both names and values without some helper notation (see [here](http://stackoverflow.com/questions/22005419/dplyr-without-hard-coding-the-variable-names) for an using substitute. What we mean by this is show below:
 
 ``` r
 library('dplyr')
@@ -90,22 +102,36 @@ Substitute without extra notation (errors-out).
 ``` r
 eval(substitute(d %>% mutate(RankColumn=RankColumn-1),
                 list(RankColumn='rank')))
- #  Error in eval(expr, envir, enclos): non-numeric argument to binary operator
+ #  Error in mutate_impl(.data, dots): non-numeric argument to binary operator
 ```
 
 Notice in both working cases the `dplyr::mutate` result landed in a column named `RankColumn` and not in the desired column `rank`. The `replyr::let` form is concise and works correctly.
+
+Similarly `base::with` can not perform the needed name remapping, none of the following variations simulate a name to name substitution.
+
+``` r
+# rank <- NULL # hide binding of rank to function
+env <- new.env()
+assign('RankColumn',quote(rank),envir = env)
+# assign('RankColumn',as.name('rank'),envir = env)
+# assign('RankColumn',rank,envir = env)
+# assign('RankColumn','rank',envir = env)
+with(env,d %>% mutate(RankColumn=RankColumn-1))
+```
+
+Whereas `replyr::let` works and is succinct.
 
 ``` r
 replyr::let(
   alias=list(RankColumn='rank'),
   d %>% mutate(RankColumn=RankColumn-1)
-)()
+)
  #    Sepal_Length Sepal_Width Species rank
  #  1          5.8         4.0  setosa    0
  #  2          5.7         4.4  setosa    1
 ```
 
-Note `replyr::let` only controls name bindings in the the scope of the `expr={}` block, and not inside functions called in the block. To be clear `replyr::let` is re-writing function arguments (which is how we use `dplyr::mutate` in the above example), but it is not re-writing data (which is why deeper in functions don't see re-namings). This means one can not paramaterize a function from the outside. For example the following function can only be used parametrically if we re-map the data frame, or if `dplyr` itself (or a data adapter) implemented something like the view stack proposal found [here](http://www.win-vector.com/blog/2016/12/parametric-variable-names-and-dplyr/).
+Note `replyr::let` only controls name bindings in the the scope of the `expr={}` block, and not inside functions called in the block. To be clear `replyr::let` is re-writing function arguments (which is how we use `dplyr::mutate` in the above example), but it is not re-writing data (which is why deeper in functions don't see re-namings). This means one can not parameterize a function from the outside. For example the following function can only be used parametrically if we re-map the data frame, or if `dplyr` itself (or a data adapter) implemented something like the view stack proposal found [here](http://www.win-vector.com/blog/2016/12/parametric-variable-names-and-dplyr/).
 
 ``` r
 library('dplyr')
@@ -141,6 +167,8 @@ d %>% ComputeRatioOfColumnsWrapped('a','b','c')
  #  5 5 7 0.7142857
 ```
 
+`replyr::let` is based on `gtools::strmacro` by Gregory R. Warnes.
+
 `replyr::gapply`
 ----------------
 
@@ -168,7 +196,7 @@ d %>% replyr::gapply('group',rank_in_group,ocolumn='order',decreasing=TRUE)
  #  5     1   0.1     2
 ```
 
-The user supplies a function or pipleline that is meant to be applied per-group and the `replyr::gapply` wrapper orchestrates the calculation. In this example `rank_in_group` was assumed to know the column names in our data, so we directly used them instead of abstracting through `replyr::let`. `replyr::gapply` defaults to using `dplyr::group_by` as its splitting or partitioning control, but can also perform actual splits using 'split' ('base::split') or 'extract' (sequential extraction). Semantics are slightly different between cases given how `dplyr` treats grouping columns, the issue is illustrated in the difference between the definitions of `sumgroupS` and `sumgroupG` in [this example](https://github.com/WinVector/replyr/blob/master/checks/gapply.md)).
+The user supplies a function or pipeline that is meant to be applied per-group and the `replyr::gapply` wrapper orchestrates the calculation. In this example `rank_in_group` was assumed to know the column names in our data, so we directly used them instead of abstracting through `replyr::let`. `replyr::gapply` defaults to using `dplyr::group_by` as its splitting or partitioning control, but can also perform actual splits using 'split' ('base::split') or 'extract' (sequential extraction). Semantics are slightly different between cases given how `dplyr` treats grouping columns, the issue is illustrated in the difference between the definitions of `sumgroupS` and `sumgroupG` in [this example](https://github.com/WinVector/replyr/blob/master/checks/gapply.md)).
 
 `replyr::replyr_*`
 ------------------
@@ -180,10 +208,8 @@ Example: `replyr::replyr_summary` working on a database service (when `base::sum
 ``` r
 d <- data.frame(x=c(1,2,2),y=c(3,5,NA),z=c(NA,'a','b'),
                 stringsAsFactors = FALSE)
-fnam <- NULL
 if (requireNamespace("RSQLite")) {
-  fnam <- tempfile(pattern = "replyr_doc_sqlite", tmpdir = tempdir(), fileext = "sqlite3")
-  my_db <- dplyr::src_sqlite(fnam, create = TRUE)
+  my_db <- dplyr::src_sqlite(":memory:", create = TRUE)
   dRemote <- replyr::replyr_copy_to(my_db,d,'d')
 } else {
   dRemote <- d # local stand in when we can't make remote
@@ -230,7 +256,7 @@ library('dplyr')
 values <- c(2)
 dRemote %>% replyr::replyr_filter('x',values)
  #  Source:   query [?? x 3]
- #  Database: sqlite 3.8.6 [/var/folders/7q/h_jp2vj131g5799gfnpzhdp80000gn/T//RtmpSoM6tA/replyr_doc_sqlite7f19198ec763sqlite3]
+ #  Database: sqlite 3.11.1 [:memory:]
  #  
  #        x     y     z
  #    <dbl> <dbl> <chr>
@@ -277,9 +303,9 @@ Clean up
 --------
 
 ``` r
-rm(list=setdiff(ls(),'fnam'))
-if(!is.null(fnam)) {
-  file.remove(fnam)
-}
- #  [1] TRUE
+rm(list=ls())
+gc()
+ #            used (Mb) gc trigger (Mb) max used (Mb)
+ #  Ncells  503594 26.9     940480 50.3   940480 50.3
+ #  Vcells 1188136  9.1    2100677 16.1  2087068 16.0
 ```

@@ -1,10 +1,12 @@
 ## ---- echo = FALSE--------------------------------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  fig.path = "README-"
+  comment = "#>"
 )
 options(width =100)
+
+## ----eval=FALSE-----------------------------------------------------------------------------------
+#  devtools::install_github("WinVector/replyr")
 
 ## ----message=FALSE,results='hide',warning=FALSE---------------------------------------------------
 library('dplyr')
@@ -21,7 +23,7 @@ ComputeRatioOfColumns <- function(d,NumeratorColumnName,DenominatorColumnName,Re
       # due to the let wrapper in this function it will behave as if it was
       # using the specified paremetric column names.
       d %>% mutate(ResultColumn=NumeratorColumn/DenominatorColumn)
-    })()
+    })
 }
 
 # example data
@@ -49,11 +51,20 @@ eval(substitute(d %>% mutate(RankColumn=RankColumn-1),
 eval(substitute(d %>% mutate(RankColumn=RankColumn-1),
                 list(RankColumn='rank')))
 
+## ----withex, eval=FALSE---------------------------------------------------------------------------
+#  # rank <- NULL # hide binding of rank to function
+#  env <- new.env()
+#  assign('RankColumn',quote(rank),envir = env)
+#  # assign('RankColumn',as.name('rank'),envir = env)
+#  # assign('RankColumn',rank,envir = env)
+#  # assign('RankColumn','rank',envir = env)
+#  with(env,d %>% mutate(RankColumn=RankColumn-1))
+
 ## ----subst3---------------------------------------------------------------------------------------
 replyr::let(
   alias=list(RankColumn='rank'),
   d %>% mutate(RankColumn=RankColumn-1)
-)()
+)
 
 ## ----message=FALSE,results='hide',warning=FALSE---------------------------------------------------
 library('dplyr')
@@ -94,10 +105,8 @@ d %>% replyr::gapply('group',rank_in_group,ocolumn='order',decreasing=TRUE)
 ## ----summaryexample-------------------------------------------------------------------------------
 d <- data.frame(x=c(1,2,2),y=c(3,5,NA),z=c(NA,'a','b'),
                 stringsAsFactors = FALSE)
-fnam <- NULL
 if (requireNamespace("RSQLite")) {
-  fnam <- tempfile(pattern = "replyr_doc_sqlite", tmpdir = tempdir(), fileext = "sqlite3")
-  my_db <- dplyr::src_sqlite(fnam, create = TRUE)
+  my_db <- dplyr::src_sqlite(":memory:", create = TRUE)
   dRemote <- replyr::replyr_copy_to(my_db,d,'d')
 } else {
   dRemote <- d # local stand in when we can't make remote
@@ -115,8 +124,6 @@ values <- c(2)
 dRemote %>% replyr::replyr_filter('x',values)
 
 ## -------------------------------------------------------------------------------------------------
-rm(list=setdiff(ls(),'fnam'))
-if(!is.null(fnam)) {
-  file.remove(fnam)
-}
+rm(list=ls())
+gc()
 

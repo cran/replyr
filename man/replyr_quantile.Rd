@@ -9,7 +9,7 @@ replyr_quantile(x, cname, probs = seq(0, 1, 0.25))
 \arguments{
 \item{x}{tbl or item that can be coerced into such.}
 
-\item{cname}{column name to compute over.}
+\item{cname}{column name to compute over}
 
 \item{probs}{numeric vector of probabilities with values in [0,1].}
 }

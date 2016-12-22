@@ -1,7 +1,8 @@
 Package: replyr
 Type: Package
 Title: Fluid Use of 'dplyr'
-Version: 0.1.0
+Version: 0.2.0
+Date: 2016-12-19
 Author: John Mount, Nina Zumel
 Maintainer: John Mount <jmount@win-vector.com>
 URL: https://github.com/WinVector/replyr
@@ -11,11 +12,11 @@ Description: Methods to get a grip on working with remote 'tbl' sources ('SQL' d
     working with an in-memory 'data.frame'.  Results do depend on which 'dplyr' data service you use.
 License: GPL-3
 LazyData: TRUE
-Imports: dplyr, magrittr, tibble, lazyeval
+Imports: dplyr (>= 0.5.0), lazyeval (>= 0.1.10)
 RoxygenNote: 5.0.1
-Suggests: testthat, knitr, rmarkdown, tidyr, RSQLite, DBI, ggplot2
+Suggests: testthat, knitr, rmarkdown, tidyr, RSQLite, ggplot2
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2016-12-08 21:22:45 UTC; johnmount
+Packaged: 2016-12-22 18:26:57 UTC; johnmount
 Repository: CRAN
-Date/Publication: 2016-12-09 02:04:57
+Date/Publication: 2016-12-22 19:36:02
