@@ -42,6 +42,7 @@ the notation remains straightforward:
 
 ```{r}
 library("dplyr")
+packageVersion("dplyr")
 d %>% mutate(x_isNA = is.na(x))
 ```
 
@@ -99,31 +100,34 @@ Formula interface is a nice option as it is `R`'s common way for holding names
 unevaluated.  The code looks like the following:
  
 ```{r}
-d %>% mutate_(RCOL = lazyeval::interp(~ is.na(cname))) %>%
-      rename_(.dots = stats::setNames('RCOL', rname))
+if  (requireNamespace("lazyeval")) {
+  print(d %>% mutate_(RCOL = lazyeval::interp(~ is.na(VAR), 
+                                              VAR=as.name(cname))) %>%
+          rename_(.dots = stats::setNames('RCOL', rname)))
+}
 ```
 
-Currently `mutate_` does not take "two-sided formulas" so we need to control
-names outside of the formula.
-In this case we used the explicit `dplyr::rename_` because attempting to name the
-assignment in-line does not seem to be supported (or if it is supported, it uses 
-a different notation or convention than the one we have just seen):
+Currently `mutate_` does not take "two-sided formulas" so we can not write:
 
-```{r}
-# the following does not correctly name the result column
-d %>% mutate_(.dots = stats::setNames(lazyeval::interp( ~ is.na(cname)),
-                                      rname))
+
+```{r, error=TRUE}
+if  (requireNamespace("lazyeval")) {
+  print(d %>% mutate_(RCOL = lazyeval::interp(RES ~ is.na(VAR),
+                                              VAR= as.name(cname),
+                                              RES= as.name(rname))))
+}
 ```
+
 
 ### Trying `quote()`
 
 `quote()` can delay evaluation, but isn't the right tool for parameterizing
-(what the linked NSE reference called "mixing constants and variable").  We
-can only conveniently get about halfway to the solution (output parameterized,
-input hard-coded as "x").
+(what the linked NSE reference called "mixing constants and variable").  We have
+a hard time getting control of incoming and outgoing variables.
 
 ```{r}
-# dplyr mutate_ paste stats::setNames solution
+# dplyr mutate_ quote non-solution
+# (hard coded x, failed to name result)
 d %>% mutate_(.dots =
                 stats::setNames(quote(is.na(x)),
                 rname))
@@ -148,10 +152,12 @@ Or just using strings as an interface to control `lazyeval::interp`:
 
 ```{r}
 # dplyr mutate_ lazyeval::interp solution
-d %>% mutate_(RCOL =
-                lazyeval::interp("is.na(cname)",
-                cname = as.name(cname))) %>%
-                rename_(.dots = setNames('RCOL', rname))
+if  (requireNamespace("lazyeval")) {
+  print(d %>% mutate_(RCOL =
+                        lazyeval::interp("is.na(cname)",
+                                         cname = as.name(cname))) %>%
+          rename_(.dots = setNames('RCOL', rname)))
+}
 ```
 
 ## Our advice

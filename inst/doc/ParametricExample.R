@@ -14,6 +14,7 @@ print(d)
 
 ## -------------------------------------------------------------------------------------------------
 library("dplyr")
+packageVersion("dplyr")
 d %>% mutate(x_isNA = is.na(x))
 
 ## -------------------------------------------------------------------------------------------------
@@ -25,16 +26,22 @@ print(rname)
 #  d[[rname]] <- is.na(d[[cname]])
 
 ## -------------------------------------------------------------------------------------------------
-d %>% mutate_(RCOL = lazyeval::interp(~ is.na(cname))) %>%
-      rename_(.dots = stats::setNames('RCOL', rname))
+if  (requireNamespace("lazyeval")) {
+  print(d %>% mutate_(RCOL = lazyeval::interp(~ is.na(VAR), 
+                                              VAR=as.name(cname))) %>%
+          rename_(.dots = stats::setNames('RCOL', rname)))
+}
+
+## ---- error=TRUE----------------------------------------------------------------------------------
+if  (requireNamespace("lazyeval")) {
+  print(d %>% mutate_(RCOL = lazyeval::interp(RES ~ is.na(VAR),
+                                              VAR= as.name(cname),
+                                              RES= as.name(rname))))
+}
 
 ## -------------------------------------------------------------------------------------------------
-# the following does not correctly name the result column
-d %>% mutate_(.dots = stats::setNames(lazyeval::interp( ~ is.na(cname)),
-                                      rname))
-
-## -------------------------------------------------------------------------------------------------
-# dplyr mutate_ paste stats::setNames solution
+# dplyr mutate_ quote non-solution
+# (hard coded x, failed to name result)
 d %>% mutate_(.dots =
                 stats::setNames(quote(is.na(x)),
                 rname))
@@ -47,10 +54,12 @@ d %>% mutate_(.dots =
 
 ## -------------------------------------------------------------------------------------------------
 # dplyr mutate_ lazyeval::interp solution
-d %>% mutate_(RCOL =
-                lazyeval::interp("is.na(cname)",
-                cname = as.name(cname))) %>%
-                rename_(.dots = setNames('RCOL', rname))
+if  (requireNamespace("lazyeval")) {
+  print(d %>% mutate_(RCOL =
+                        lazyeval::interp("is.na(cname)",
+                                         cname = as.name(cname))) %>%
+          rename_(.dots = setNames('RCOL', rname)))
+}
 
 ## -------------------------------------------------------------------------------------------------
 # replyr::let solution

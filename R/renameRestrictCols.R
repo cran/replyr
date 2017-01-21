@@ -2,13 +2,38 @@
 # Contributed by John Mount jmount@win-vector.com , ownership assigned to Win-Vector LLC.
 # Win-Vector LLC currently distributes this code without intellectual property indemnification, warranty, claim of fitness of purpose, or any other guarantee under a GPL3 license.
 
+#' @importFrom stats setNames
+NULL
 
 # dplyr::one_of is what is causing us to depend on dplyr (>= 0.5.0)
 
 
+#' Rename a column
+#'
+#' @param .data data object to work on
+#' @param newName character new column name
+#' @param oldName character old column name
+#'
+#' @examples
+#'
+#' d <- data.frame(Sepal_Length= c(5.8,5.7),
+#'                 Sepal_Width= c(4.0,4.4),
+#'                 Species= 'setosa', rank=c(1,2))
+#' replyr_rename(d, 'family', 'Species')
+#'
+#' @export
+#'
+replyr_rename <- function(.data, newName, oldName) {
+  if(newName!=oldName) {
+    # use setNames here so this code is independent of let
+    return(dplyr::rename_(.data,.dots=stats::setNames(oldName, newName)))
+  }
+  .data
+}
+
 #' Map names of columns to known values and drop other columns.
 #'
-#' Used to restrict a data item's column names and re-name them in bulk.  Note: this can be expensive operation.
+#' Used to restrict a data item's column names and re-name them in bulk.  Note: this can be expensive operation. Except for identity assigments keys and destinations must be disjoint.
 #'
 #' Something like \code{replyr::replyr_mapRestrictCols} is only useful to get control of a function that is not parameterized
 #' (in the sense it has hard-coded column names inside its implementation that don't the match column names in our data).
@@ -17,6 +42,7 @@
 #'
 #' @param x data item to work on
 #' @param nmap named list mapping desired column names to column names in x. Doesn't support permutations of names.
+#' @param reverse logical if true apply the inverse of nmap intead of nmap.
 #' @return data item with columns limited down to those named as nmap values, and re-named from their orignal names (nmap values) to desired names (nmap keys).
 #'
 #' @examples
@@ -28,7 +54,8 @@
 #' }
 #'
 #' # our example data, with different column names
-#' d <- data.frame(Sepal_Length=c(5.8,5.7),Sepal_Width=c(4.0,4.4),
+#' d <- data.frame(Sepal_Length=c(5.8,5.7),
+#'                 Sepal_Width=c(4.0,4.4),
 #'                 Species='setosa',rank=c(1,2))
 #' print(d)
 #'
@@ -44,15 +71,17 @@
 #' dm <- DecreaseRankColumnByOne(dm)
 #'
 #' # map back to our original column names (for the columns we retained)
-#' invmap <- names(nmap)
-#' names(invmap) <- as.character(nmap)
-#' print(invmap)
 #' # Note: can only map back columns that were retained in first mapping.
-#' replyr_mapRestrictCols(dm,invmap)
+#' replyr_mapRestrictCols(dm, nmap, reverse=TRUE)
 #'
 #' @export
-replyr_mapRestrictCols <- function(x,nmap) {
+replyr_mapRestrictCols <- function(x,nmap,reverse=FALSE) {
   nmap <- as.list(nmap)
+  if(reverse) {
+    invmap <- names(nmap)
+    names(invmap) <- as.character(nmap)
+    nmap <- as.list(invmap)
+  }
   if(length(unique(nmap))!=length(nmap)) {
     stop("replyr::replyr_mapRestrictCols duplicate destination columns in replyr_mapRestrictCols")
   }
@@ -93,18 +122,17 @@ replyr_mapRestrictCols <- function(x,nmap) {
     }
     if(ti!=ni) {
       if(ti %in% names(nmap)) {
-        stop("replyr::replyr_mapRestrictCols source and destination columns overlap in replyr_mapRestrictCols")
+        stop("replyr::replyr_mapRestrictCols except for identity assigments keys and destinations must be disjoint")
       }
     }
   }
   # limit down to only names we are mapping
-  #do.call(dplyr::select_,c(list(x),as.list(names(nmap)))) -> x
   x %>% dplyr::select(dplyr::one_of(as.character(nmap))) -> x
   # re-map names
   for(ni in names(nmap)) {
     ti <- nmap[[ni]]
     if(ti!=ni) {
-      x %>% dplyr::rename_(.dots=stats::setNames(ti,ni)) -> x
+      x <- replyr_rename(x, newName= ni, oldName= ti)
     }
   }
   x

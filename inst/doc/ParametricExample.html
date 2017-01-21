@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2016-12-22" />
+<meta name="date" content="2017-01-21" />
 
 <title>Parametric Programming in R</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Parametric Programming in R</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2016-12-22</em></h4>
+<h4 class="date"><em>2017-01-21</em></h4>
 
 
 
@@ -85,6 +85,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">d$x_isNA &lt;-<span class="st"> </span><span class="kw">is.na</span>(d$x)</code></pre></div>
 <p>We used the fact that we are looking at the data interactively to note the only column is “<code>x</code>”, and then picked “<code>x_isNA</code>” as our result name. If we want to use <a href="https://CRAN.R-project.org/package=dplyr"><code>dplyr</code></a> the notation remains straightforward:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;dplyr&quot;</span>)
+<span class="kw">packageVersion</span>(<span class="st">&quot;dplyr&quot;</span>)
+ <span class="co">#  [1] '0.5.0'</span>
 d %&gt;%<span class="st"> </span><span class="kw">mutate</span>(<span class="dt">x_isNA =</span> <span class="kw">is.na</span>(x))
  <span class="co">#     x x_isNA</span>
  <span class="co">#  1  1  FALSE</span>
@@ -112,23 +114,27 @@ rname &lt;-<span class="st"> </span><span class="kw">paste</span>(cname, <span c
 <div id="formula-interface" class="section level3">
 <h3>Formula interface</h3>
 <p>Formula interface is a nice option as it is <code>R</code>’s common way for holding names unevaluated. The code looks like the following:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt">RCOL =</span> lazyeval::<span class="kw">interp</span>(~<span class="st"> </span><span class="kw">is.na</span>(cname))) %&gt;%
-<span class="st">      </span><span class="kw">rename_</span>(<span class="dt">.dots =</span> stats::<span class="kw">setNames</span>(<span class="st">'RCOL'</span>, rname))
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">if  (<span class="kw">requireNamespace</span>(<span class="st">&quot;lazyeval&quot;</span>)) {
+  <span class="kw">print</span>(d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt">RCOL =</span> lazyeval::<span class="kw">interp</span>(~<span class="st"> </span><span class="kw">is.na</span>(VAR), 
+                                              <span class="dt">VAR=</span><span class="kw">as.name</span>(cname))) %&gt;%
+<span class="st">          </span><span class="kw">rename_</span>(<span class="dt">.dots =</span> stats::<span class="kw">setNames</span>(<span class="st">'RCOL'</span>, rname)))
+}
  <span class="co">#     x x_isNA</span>
  <span class="co">#  1  1  FALSE</span>
- <span class="co">#  2 NA  FALSE</span></code></pre></div>
-<p>Currently <code>mutate_</code> does not take “two-sided formulas” so we need to control names outside of the formula. In this case we used the explicit <code>dplyr::rename_</code> because attempting to name the assignment in-line does not seem to be supported (or if it is supported, it uses a different notation or convention than the one we have just seen):</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># the following does not correctly name the result column</span>
-d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt">.dots =</span> stats::<span class="kw">setNames</span>(lazyeval::<span class="kw">interp</span>( ~<span class="st"> </span><span class="kw">is.na</span>(cname)),
-                                      rname))
- <span class="co">#     x is.na(cname)</span>
- <span class="co">#  1  1        FALSE</span>
- <span class="co">#  2 NA        FALSE</span></code></pre></div>
+ <span class="co">#  2 NA   TRUE</span></code></pre></div>
+<p>Currently <code>mutate_</code> does not take “two-sided formulas” so we can not write:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">if  (<span class="kw">requireNamespace</span>(<span class="st">&quot;lazyeval&quot;</span>)) {
+  <span class="kw">print</span>(d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt">RCOL =</span> lazyeval::<span class="kw">interp</span>(RES ~<span class="st"> </span><span class="kw">is.na</span>(VAR),
+                                              <span class="dt">VAR=</span> <span class="kw">as.name</span>(cname),
+                                              <span class="dt">RES=</span> <span class="kw">as.name</span>(rname))))
+}
+ <span class="co">#  Error: Must use one-sided formula.</span></code></pre></div>
 </div>
 <div id="trying-quote" class="section level3">
 <h3>Trying <code>quote()</code></h3>
-<p><code>quote()</code> can delay evaluation, but isn’t the right tool for parameterizing (what the linked NSE reference called “mixing constants and variable”). We can only conveniently get about halfway to the solution (output parameterized, input hard-coded as “x”).</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># dplyr mutate_ paste stats::setNames solution</span>
+<p><code>quote()</code> can delay evaluation, but isn’t the right tool for parameterizing (what the linked NSE reference called “mixing constants and variable”). We have a hard time getting control of incoming and outgoing variables.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># dplyr mutate_ quote non-solution</span>
+<span class="co"># (hard coded x, failed to name result)</span>
 d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt">.dots =</span>
                 stats::<span class="kw">setNames</span>(<span class="kw">quote</span>(<span class="kw">is.na</span>(x)),
                 rname))
@@ -149,10 +155,12 @@ d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt
  <span class="co">#  2 NA   TRUE</span></code></pre></div>
 <p>Or just using strings as an interface to control <code>lazyeval::interp</code>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># dplyr mutate_ lazyeval::interp solution</span>
-d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt">RCOL =</span>
-                lazyeval::<span class="kw">interp</span>(<span class="st">&quot;is.na(cname)&quot;</span>,
-                <span class="dt">cname =</span> <span class="kw">as.name</span>(cname))) %&gt;%
-<span class="st">                </span><span class="kw">rename_</span>(<span class="dt">.dots =</span> <span class="kw">setNames</span>(<span class="st">'RCOL'</span>, rname))
+if  (<span class="kw">requireNamespace</span>(<span class="st">&quot;lazyeval&quot;</span>)) {
+  <span class="kw">print</span>(d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt">RCOL =</span>
+                        lazyeval::<span class="kw">interp</span>(<span class="st">&quot;is.na(cname)&quot;</span>,
+                                         <span class="dt">cname =</span> <span class="kw">as.name</span>(cname))) %&gt;%
+<span class="st">          </span><span class="kw">rename_</span>(<span class="dt">.dots =</span> <span class="kw">setNames</span>(<span class="st">'RCOL'</span>, rname)))
+}
  <span class="co">#     x x_isNA</span>
  <span class="co">#  1  1  FALSE</span>
  <span class="co">#  2 NA   TRUE</span></code></pre></div>

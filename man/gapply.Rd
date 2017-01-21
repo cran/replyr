@@ -5,7 +5,7 @@
 \title{grouped ordered apply}
 \usage{
 gapply(df, gcolumn, f, ..., ocolumn = NULL, decreasing = FALSE,
-  partitionMethod = "group_by", bindrows = TRUE, maxgroups = 100,
+  partitionMethod = "split", bindrows = TRUE, maxgroups = 100,
   eagerCompute = FALSE)
 }
 \arguments{
@@ -39,6 +39,10 @@ moderate number of groups and better if grouping column is an index.
 This is powerfull
 enough to implement "The Split-Apply-Combine Strategy for Data Analysis"
 https://www.jstatsoft.org/article/view/v040i01
+}
+\details{
+Note this is a fairly expensive operator, so it only makes sense to use
+in situations where \code{f} itself is fairly complicated and/or expensive.
 }
 \examples{
 

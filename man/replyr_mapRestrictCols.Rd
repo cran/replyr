@@ -4,18 +4,20 @@
 \alias{replyr_mapRestrictCols}
 \title{Map names of columns to known values and drop other columns.}
 \usage{
-replyr_mapRestrictCols(x, nmap)
+replyr_mapRestrictCols(x, nmap, reverse = FALSE)
 }
 \arguments{
 \item{x}{data item to work on}
 
 \item{nmap}{named list mapping desired column names to column names in x. Doesn't support permutations of names.}
+
+\item{reverse}{logical if true apply the inverse of nmap intead of nmap.}
 }
 \value{
 data item with columns limited down to those named as nmap values, and re-named from their orignal names (nmap values) to desired names (nmap keys).
 }
 \description{
-Used to restrict a data item's column names and re-name them in bulk.  Note: this can be expensive operation.
+Used to restrict a data item's column names and re-name them in bulk.  Note: this can be expensive operation. Except for identity assigments keys and destinations must be disjoint.
 }
 \details{
 Something like \code{replyr::replyr_mapRestrictCols} is only useful to get control of a function that is not parameterized
@@ -30,7 +32,8 @@ DecreaseRankColumnByOne <- function(d) {
 }
 
 # our example data, with different column names
-d <- data.frame(Sepal_Length=c(5.8,5.7),Sepal_Width=c(4.0,4.4),
+d <- data.frame(Sepal_Length=c(5.8,5.7),
+                Sepal_Width=c(4.0,4.4),
                 Species='setosa',rank=c(1,2))
 print(d)
 
@@ -46,11 +49,8 @@ print(dm)
 dm <- DecreaseRankColumnByOne(dm)
 
 # map back to our original column names (for the columns we retained)
-invmap <- names(nmap)
-names(invmap) <- as.character(nmap)
-print(invmap)
 # Note: can only map back columns that were retained in first mapping.
-replyr_mapRestrictCols(dm,invmap)
+replyr_mapRestrictCols(dm, nmap, reverse=TRUE)
 
 }
 \seealso{

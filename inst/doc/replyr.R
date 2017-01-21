@@ -5,9 +5,6 @@ knitr::opts_chunk$set(
 )
 options(width =100)
 
-## ----eval=FALSE-----------------------------------------------------------------------------------
-#  devtools::install_github("WinVector/replyr")
-
 ## ----message=FALSE,results='hide',warning=FALSE---------------------------------------------------
 library('dplyr')
 
