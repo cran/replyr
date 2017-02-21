@@ -11,7 +11,7 @@ library('dplyr')
 ## ----letexample-----------------------------------------------------------------------------------
 # nice parametric function we write
 ComputeRatioOfColumns <- function(d,NumeratorColumnName,DenominatorColumnName,ResultColumnName) {
-  replyr::let(
+  wrapr::let(
     alias=list(NumeratorColumn=NumeratorColumnName,
                DenominatorColumn=DenominatorColumnName,
                ResultColumn=ResultColumnName),
@@ -58,7 +58,7 @@ eval(substitute(d %>% mutate(RankColumn=RankColumn-1),
 #  with(env,d %>% mutate(RankColumn=RankColumn-1))
 
 ## ----subst3---------------------------------------------------------------------------------------
-replyr::let(
+wrapr::let(
   alias=list(RankColumn='rank'),
   d %>% mutate(RankColumn=RankColumn-1)
 )

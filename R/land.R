@@ -2,10 +2,10 @@
 
 #' Land a value to variable from a pipeline.
 #'
-#' \%land\% and \%->\% copy a pipeline value to a variable on the RHS,
+#' \%land\% and \%->\% ("writearrow") copy a pipeline value to a variable on the
+#' right hand side.
 #' \%land_\% and \%->_\% copy a pipeline value to
-#' a variable named by its RHS argument.  There is nothing these operators do
-#' better than "->" and they are mostly just a proof of concept.
+#' a variable named by the value referenced by its right hand side argument.
 #' These operators use eager evaluation.
 #'
 #'
@@ -30,7 +30,7 @@
 `%land%` <- function(value, name) {
   name <- as.character(substitute(name))
   if((length(name)!=1)||(!is.character(name))||
-     (!isValidAndUnreservedName(name))) {
+     (!wrapr:::isValidAndUnreservedName(name))) {
     stop("replyr::`%land%` name argument must be a valid potential variable name")
   }
   force(value)
@@ -46,7 +46,7 @@
 `%->%` <- function(value, name) {
   name <- as.character(substitute(name))
   if((length(name)!=1)||(!is.character(name))||
-     (!isValidAndUnreservedName(name))) {
+     (!wrapr:::isValidAndUnreservedName(name))) {
     stop("replyr::`%->%` name argument must be a valid potential variable name")
   }
   force(value)
@@ -61,7 +61,7 @@
 #' @rdname grapes-land-grapes
 `%->_%` <- function(value, name) {
   if((length(name)!=1)||(!is.character(name))||
-     (!isValidAndUnreservedName(name))) {
+     (!wrapr:::isValidAndUnreservedName(name))) {
     stop("replyr::`%->_%` name argument must be a valid potential variable name")
   }
   force(value)
@@ -76,7 +76,7 @@
 #' @rdname grapes-land-grapes
 `%land_%` <- function(value, name) {
   if((length(name)!=1)||(!is.character(name))||
-     (!isValidAndUnreservedName(name))) {
+     (!wrapr:::isValidAndUnreservedName(name))) {
     stop("replyr::`%land_%` name argument must be a valid potential variable name")
   }
   force(value)

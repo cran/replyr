@@ -40,11 +40,14 @@ if  (requireNamespace("lazyeval")) {
 }
 
 ## -------------------------------------------------------------------------------------------------
-# dplyr mutate_ quote non-solution
-# (hard coded x, failed to name result)
 d %>% mutate_(.dots =
-                stats::setNames(quote(is.na(x)),
-                rname))
+    stats::setNames(substitute(is.na(XVAR),list(XVAR=cname)),
+                    rname))  %>%
+  rename_(.dots =
+    stats::setNames(paste0('`is.na("',
+                           cname,
+                           '")`'),
+                    rname))
 
 ## -------------------------------------------------------------------------------------------------
 # dplyr mutate_ paste stats::setNames solution
@@ -62,8 +65,8 @@ if  (requireNamespace("lazyeval")) {
 }
 
 ## -------------------------------------------------------------------------------------------------
-# replyr::let solution
-replyr::let(alias = list(cname = cname, rname = rname),
+# wrapr::let solution
+wrapr::let(alias = list(cname = cname, rname = rname),
             expr  = {
             d %>% mutate(rname = is.na(cname))
             })

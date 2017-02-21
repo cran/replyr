@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2017-01-21" />
+<meta name="date" content="2017-02-20" />
 
 <title>Parametric Programming in R</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Parametric Programming in R</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2017-01-21</em></h4>
+<h4 class="date"><em>2017-02-20</em></h4>
 
 
 
@@ -130,17 +130,20 @@ rname &lt;-<span class="st"> </span><span class="kw">paste</span>(cname, <span c
 }
  <span class="co">#  Error: Must use one-sided formula.</span></code></pre></div>
 </div>
-<div id="trying-quote" class="section level3">
-<h3>Trying <code>quote()</code></h3>
-<p><code>quote()</code> can delay evaluation, but isn’t the right tool for parameterizing (what the linked NSE reference called “mixing constants and variable”). We have a hard time getting control of incoming and outgoing variables.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># dplyr mutate_ quote non-solution</span>
-<span class="co"># (hard coded x, failed to name result)</span>
-d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt">.dots =</span>
-                stats::<span class="kw">setNames</span>(<span class="kw">quote</span>(<span class="kw">is.na</span>(x)),
-                rname))
- <span class="co">#     x is.na(x)</span>
- <span class="co">#  1  1    FALSE</span>
- <span class="co">#  2 NA     TRUE</span></code></pre></div>
+<div id="trying-quote-substitute" class="section level3">
+<h3>Trying <code>quote()</code> / <code>substitute()</code></h3>
+<p><code>quote()</code> can delay evaluation, but isn’t the right tool for parameterizing (what the linked NSE reference called “mixing constants and variable”). We can use the related <code>substitute()</code> method as shown below (notice <code>mutate_</code> ingores our first attempt to name the result and we have to guess/reconstruct what name <code>mutate_</code> ends up using).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt">.dots =</span>
+    stats::<span class="kw">setNames</span>(<span class="kw">substitute</span>(<span class="kw">is.na</span>(XVAR),<span class="kw">list</span>(<span class="dt">XVAR=</span>cname)),
+                    rname))  %&gt;%
+<span class="st">  </span><span class="kw">rename_</span>(<span class="dt">.dots =</span>
+    stats::<span class="kw">setNames</span>(<span class="kw">paste0</span>(<span class="st">'`is.na(&quot;'</span>,
+                           cname,
+                           <span class="st">'&quot;)`'</span>),
+                    rname))
+ <span class="co">#     x x_isNA</span>
+ <span class="co">#  1  1  FALSE</span>
+ <span class="co">#  2 NA  FALSE</span></code></pre></div>
 <p>My point is: even if this is something that <em>you</em> know how to accomplish, this is evidence we are really trying to swim upstream with this notation.</p>
 </div>
 <div id="string-solutions" class="section level3">
@@ -168,18 +171,18 @@ if  (<span class="kw">requireNamespace</span>(<span class="st">&quot;lazyeval&qu
 </div>
 <div id="our-advice" class="section level2">
 <h2>Our advice</h2>
-<p>Our advice is to give <a href="https://github.com/WinVector/replyr"><code>replyr::let</code></a> a try. <code>replyr::let</code> takes a name mapping list (called “<code>alias</code>”) and a code-block (called “<code>expr</code>”). The code-block is re-written so that names in <code>expr</code> appearing on the left hand sides of the <code>alias</code> map are replaced with names appearing on the right hand side of the <code>alias</code> map.</p>
+<p>Our advice is to give <a href="https://github.com/WinVector/replyr"><code>wrapr::let</code></a> a try. <code>wrapr::let</code> takes a name mapping list (called “<code>alias</code>”) and a code-block (called “<code>expr</code>”). The code-block is re-written so that names in <code>expr</code> appearing on the left hand sides of the <code>alias</code> map are replaced with names appearing on the right hand side of the <code>alias</code> map.</p>
 <p>The code looks like this:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># replyr::let solution</span>
-replyr::<span class="kw">let</span>(<span class="dt">alias =</span> <span class="kw">list</span>(<span class="dt">cname =</span> cname, <span class="dt">rname =</span> rname),
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># wrapr::let solution</span>
+wrapr::<span class="kw">let</span>(<span class="dt">alias =</span> <span class="kw">list</span>(<span class="dt">cname =</span> cname, <span class="dt">rname =</span> rname),
             <span class="dt">expr  =</span> {
             d %&gt;%<span class="st"> </span><span class="kw">mutate</span>(<span class="dt">rname =</span> <span class="kw">is.na</span>(cname))
             })
  <span class="co">#     x x_isNA</span>
  <span class="co">#  1  1  FALSE</span>
  <span class="co">#  2 NA   TRUE</span></code></pre></div>
-<p>Notice we are able to use <code>dplyr::mutate</code> instead of needing to invoke <code>dplyr::mutate_</code>. The expression block can be arbitrarily long and contain deep pipelines. We now have a useful separation of concerns, the mapping code is a wrapper completely outside of the user pipeline (the two are no longer commingled). For complicated tasks the ratio of <code>replyr::let</code> boilerplate to actual useful work goes down quickly.</p>
-<p>We also have a varation for piping into (though to save such pipes for later you use <code>replyr::let</code>, not <code>replyr::letp</code>):</p>
+<p>Notice we are able to use <code>dplyr::mutate</code> instead of needing to invoke <code>dplyr::mutate_</code>. The expression block can be arbitrarily long and contain deep pipelines. We now have a useful separation of concerns, the mapping code is a wrapper completely outside of the user pipeline (the two are no longer commingled). For complicated tasks the ratio of <code>wrapr::let</code> boilerplate to actual useful work goes down quickly.</p>
+<p>We also have a varation for piping into (though to save such pipes for later you use <code>wrapr::let</code>, not <code>replyr::letp</code>):</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># replyr::letp solution</span>
 d %&gt;%<span class="st"> </span>replyr::<span class="kw">letp</span>(<span class="dt">alias =</span> <span class="kw">list</span>(<span class="dt">cname =</span> cname, <span class="dt">rname =</span> rname),
                    <span class="dt">expr  =</span> {
@@ -188,16 +191,16 @@ d %&gt;%<span class="st"> </span>replyr::<span class="kw">letp</span>(<span clas
  <span class="co">#     x x_isNA</span>
  <span class="co">#  1  1  FALSE</span>
  <span class="co">#  2 NA   TRUE</span></code></pre></div>
-<p>The alias map is deliberately only allowed to be a string to string map (no environments, <code>as.name</code>, <code>formula</code>, expressions, or values) so <code>replyr::let</code> <em>itself</em> is easy to use in automation or program over. I’ll repeat that for emphasis: externally <code>replyr::let</code> is completely controllable through standard (or parametric) evaluation interfaces. Also notice the code we wrote is never directly mentions “<code>x</code>” or “<code>x_isNA</code>” as it pulls these names out of its execution environment.</p>
-<p>All of these solutions have consequences and corner cases. Our (biased) opinion is: we dislike <code>replyr::let</code> the least.</p>
+<p>The alias map is deliberately only allowed to be a string to string map (no environments, <code>as.name</code>, <code>formula</code>, expressions, or values) so <code>wrapr::let</code> <em>itself</em> is easy to use in automation or program over. I’ll repeat that for emphasis: externally <code>wrapr::let</code> is completely controllable through standard (or parametric) evaluation interfaces. Also notice the code we wrote is never directly mentions “<code>x</code>” or “<code>x_isNA</code>” as it pulls these names out of its execution environment.</p>
+<p>All of these solutions have consequences and corner cases. Our (biased) opinion is: we dislike <code>wrapr::let</code> the least.</p>
 </div>
 <div id="more-reading" class="section level2">
 <h2>More reading</h2>
-<p>Our group has been writing <em>a lot</em> on <code>replyr::let</code>. It is new code, yet something we think analysts should try. Some of our recent notes include:</p>
+<p>Our group has been writing <em>a lot</em> on <code>wrapr::let</code>. It is new code, yet something we think analysts should try. Some of our recent notes include:</p>
 <ul>
 <li><a href="http://www.win-vector.com/blog/2016/12/parametric-variable-names-and-dplyr/">The original proposal</a></li>
 <li><a href="http://www.win-vector.com/blog/2016/12/using-replyrlet-to-parameterize-dplyr-expressions/">A non-trivial example</a></li>
-<li><a href="http://www.win-vector.com/blog/2016/12/helplet-packagereplyr/">The <code>replyr::let</code> help documentation</a></li>
+<li><a href="http://www.win-vector.com/blog/2016/12/helplet-packagereplyr/">The <code>wrapr::let</code> help documentation</a></li>
 <li><a href="https://github.com/WinVector/replyr/blob/master/README.md">The <code>replyr</code> package README</a>.</li>
 </ul>
 </div>
