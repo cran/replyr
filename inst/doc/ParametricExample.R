@@ -27,9 +27,10 @@ print(rname)
 
 ## -------------------------------------------------------------------------------------------------
 if  (requireNamespace("lazyeval")) {
-  print(d %>% mutate_(RCOL = lazyeval::interp(~ is.na(VAR), 
-                                              VAR=as.name(cname))) %>%
-          rename_(.dots = stats::setNames('RCOL', rname)))
+  print(d %>%
+    mutate_(.dots = stats::setNames(list(
+      lazyeval::interp(~ is.na(VAR),
+                       VAR = as.name(cname))), rname)))
 }
 
 ## ---- error=TRUE----------------------------------------------------------------------------------
@@ -41,12 +42,7 @@ if  (requireNamespace("lazyeval")) {
 
 ## -------------------------------------------------------------------------------------------------
 d %>% mutate_(.dots =
-    stats::setNames(substitute(is.na(XVAR),list(XVAR=cname)),
-                    rname))  %>%
-  rename_(.dots =
-    stats::setNames(paste0('`is.na("',
-                           cname,
-                           '")`'),
+    stats::setNames(list(substitute(is.na(XVAR),list(XVAR=cname))),
                     rname))
 
 ## -------------------------------------------------------------------------------------------------
@@ -58,10 +54,9 @@ d %>% mutate_(.dots =
 ## -------------------------------------------------------------------------------------------------
 # dplyr mutate_ lazyeval::interp solution
 if  (requireNamespace("lazyeval")) {
-  print(d %>% mutate_(RCOL =
-                        lazyeval::interp("is.na(cname)",
-                                         cname = as.name(cname))) %>%
-          rename_(.dots = setNames('RCOL', rname)))
+  print(d %>% mutate_(.dots =
+                        stats::setNames(list(lazyeval::interp("is.na(cname)",
+                                         cname = as.name(cname))), rname)))
 }
 
 ## -------------------------------------------------------------------------------------------------

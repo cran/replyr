@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2017-02-20" />
+<meta name="date" content="2017-03-13" />
 
 <title>Bizarro Pipe</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Bizarro Pipe</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2017-02-20</em></h4>
+<h4 class="date"><em>2017-03-13</em></h4>
 
 
 
@@ -87,10 +87,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 ## 
 ##     intersect, setdiff, setequal, union</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;magrittr&quot;</span>)  <span class="co"># ceci n'est pas un pipe</span>
-<span class="kw">library</span>(<span class="st">&quot;ggplot2&quot;</span>)   <span class="co"># for graphics</span></code></pre></div>
-<pre><code>## Use suppressPackageStartupMessages() to eliminate package startup
-## messages.</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">babynames %&gt;%
+<span class="kw">library</span>(<span class="st">&quot;ggplot2&quot;</span>)   <span class="co"># for graphics</span>
+
+babynames %&gt;%
 <span class="st">    </span><span class="kw">filter</span>(name %&gt;%<span class="st"> </span><span class="kw">substr</span>(<span class="dv">1</span>, <span class="dv">3</span>) %&gt;%<span class="st"> </span><span class="kw">equals</span>(<span class="st">&quot;Ste&quot;</span>)) %&gt;%
 <span class="st">    </span><span class="kw">group_by</span>(year, sex) %&gt;%
 <span class="st">    </span><span class="kw">summarize</span>(<span class="dt">total =</span> <span class="kw">sum</span>(n)) %&gt;%

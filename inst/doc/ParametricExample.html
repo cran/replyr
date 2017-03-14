@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2017-02-20" />
+<meta name="date" content="2017-03-13" />
 
 <title>Parametric Programming in R</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Parametric Programming in R</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2017-02-20</em></h4>
+<h4 class="date"><em>2017-03-13</em></h4>
 
 
 
@@ -113,15 +113,17 @@ rname &lt;-<span class="st"> </span><span class="kw">paste</span>(cname, <span c
 <p>Let us try a few of these to try and emphasize we are proposing a new solution, not because we do not know of the current solutions, but instead because we are familiar with the current solutions.</p>
 <div id="formula-interface" class="section level3">
 <h3>Formula interface</h3>
-<p>Formula interface is a nice option as it is <code>R</code>’s common way for holding names unevaluated. The code looks like the following:</p>
+<p>Formula interface is a nice option as it is <code>R</code>’s common way for holding names unevaluated. The code looks like the following (using <code>lazyeval::interp</code> to execute):</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">if  (<span class="kw">requireNamespace</span>(<span class="st">&quot;lazyeval&quot;</span>)) {
-  <span class="kw">print</span>(d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt">RCOL =</span> lazyeval::<span class="kw">interp</span>(~<span class="st"> </span><span class="kw">is.na</span>(VAR), 
-                                              <span class="dt">VAR=</span><span class="kw">as.name</span>(cname))) %&gt;%
-<span class="st">          </span><span class="kw">rename_</span>(<span class="dt">.dots =</span> stats::<span class="kw">setNames</span>(<span class="st">'RCOL'</span>, rname)))
+  <span class="kw">print</span>(d %&gt;%
+<span class="st">    </span><span class="kw">mutate_</span>(<span class="dt">.dots =</span> stats::<span class="kw">setNames</span>(<span class="kw">list</span>(
+      lazyeval::<span class="kw">interp</span>(~<span class="st"> </span><span class="kw">is.na</span>(VAR),
+                       <span class="dt">VAR =</span> <span class="kw">as.name</span>(cname))), rname)))
 }
  <span class="co">#     x x_isNA</span>
  <span class="co">#  1  1  FALSE</span>
  <span class="co">#  2 NA   TRUE</span></code></pre></div>
+<p>The extra layer of <code>list()</code>-wrapping seems to be needed to successfully control both the name of the input and result (please see <a href="http://www.win-vector.com/blog/2017/02/my-recent-barug-talk-parametric-programming-in-r-with-replyr/#comment-66488">here</a> for the original solution).</p>
 <p>Currently <code>mutate_</code> does not take “two-sided formulas” so we can not write:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">if  (<span class="kw">requireNamespace</span>(<span class="st">&quot;lazyeval&quot;</span>)) {
   <span class="kw">print</span>(d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt">RCOL =</span> lazyeval::<span class="kw">interp</span>(RES ~<span class="st"> </span><span class="kw">is.na</span>(VAR),
@@ -134,12 +136,7 @@ rname &lt;-<span class="st"> </span><span class="kw">paste</span>(cname, <span c
 <h3>Trying <code>quote()</code> / <code>substitute()</code></h3>
 <p><code>quote()</code> can delay evaluation, but isn’t the right tool for parameterizing (what the linked NSE reference called “mixing constants and variable”). We can use the related <code>substitute()</code> method as shown below (notice <code>mutate_</code> ingores our first attempt to name the result and we have to guess/reconstruct what name <code>mutate_</code> ends up using).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt">.dots =</span>
-    stats::<span class="kw">setNames</span>(<span class="kw">substitute</span>(<span class="kw">is.na</span>(XVAR),<span class="kw">list</span>(<span class="dt">XVAR=</span>cname)),
-                    rname))  %&gt;%
-<span class="st">  </span><span class="kw">rename_</span>(<span class="dt">.dots =</span>
-    stats::<span class="kw">setNames</span>(<span class="kw">paste0</span>(<span class="st">'`is.na(&quot;'</span>,
-                           cname,
-                           <span class="st">'&quot;)`'</span>),
+    stats::<span class="kw">setNames</span>(<span class="kw">list</span>(<span class="kw">substitute</span>(<span class="kw">is.na</span>(XVAR),<span class="kw">list</span>(<span class="dt">XVAR=</span>cname))),
                     rname))
  <span class="co">#     x x_isNA</span>
  <span class="co">#  1  1  FALSE</span>
@@ -156,13 +153,12 @@ d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt
  <span class="co">#     x x_isNA</span>
  <span class="co">#  1  1  FALSE</span>
  <span class="co">#  2 NA   TRUE</span></code></pre></div>
-<p>Or just using strings as an interface to control <code>lazyeval::interp</code>:</p>
+<p>Or just using strings as an interface to control <code>lazyeval::interp</code> (without the formula interface):</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># dplyr mutate_ lazyeval::interp solution</span>
 if  (<span class="kw">requireNamespace</span>(<span class="st">&quot;lazyeval&quot;</span>)) {
-  <span class="kw">print</span>(d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt">RCOL =</span>
-                        lazyeval::<span class="kw">interp</span>(<span class="st">&quot;is.na(cname)&quot;</span>,
-                                         <span class="dt">cname =</span> <span class="kw">as.name</span>(cname))) %&gt;%
-<span class="st">          </span><span class="kw">rename_</span>(<span class="dt">.dots =</span> <span class="kw">setNames</span>(<span class="st">'RCOL'</span>, rname)))
+  <span class="kw">print</span>(d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt">.dots =</span>
+                        stats::<span class="kw">setNames</span>(<span class="kw">list</span>(lazyeval::<span class="kw">interp</span>(<span class="st">&quot;is.na(cname)&quot;</span>,
+                                         <span class="dt">cname =</span> <span class="kw">as.name</span>(cname))), rname)))
 }
  <span class="co">#     x x_isNA</span>
  <span class="co">#  1  1  FALSE</span>

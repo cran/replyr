@@ -1,7 +1,15 @@
 ## ---- echo = FALSE--------------------------------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = " # "
+)
+options(width =100)
+
+## ---- echo = FALSE--------------------------------------------------------------------------------
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = " # ",
+  fig.path = "README-"
 )
 options(width =100)
 

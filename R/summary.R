@@ -14,7 +14,9 @@ localFrame <- function(d) {
 #' Compute usable summary of columns of tbl.
 #'
 #' @param x tbl or item that can be coerced into such.
-#' @param countUnique logical, if true include unique non-NA counts.
+#' @param countUniqueNum logical, if true include unique non-NA counts for numeric cols.
+#' @param countUniqueNonNum logical, if true include unique non-NA counts for non-numeric cols.
+#' @param cols if not nul set of columns to restrict to.
 #' @return summary of columns.
 #'
 #' @examples
@@ -24,9 +26,15 @@ localFrame <- function(d) {
 #' replyr_summary(d)
 #'
 #' @export
-replyr_summary <- function(x,countUnique=TRUE) {
+replyr_summary <- function(x,
+                           countUniqueNum= FALSE,
+                           countUniqueNonNum= FALSE,
+                           cols= NULL) {
   nrows <- replyr_nrow(x)
   cnames <- colnames(x)
+  if(!is.null(cols)) {
+    cnames <- intersect(cnames, cols)
+  }
   cmap <- seq_len(length(cnames))
   names(cmap) <- cnames
   numericCols <- cnames[replyr_testCols(x,is.numeric)]
@@ -53,8 +61,13 @@ replyr_summary <- function(x,countUnique=TRUE) {
                                             mean = mean,
                                             sd = sd)) %>%
                         dplyr::collect() %>% as.data.frame() -> si
+                      # dplyr::summarize_each has sd=0 for single row SQLite examples
+                      # please see here: https://github.com/WinVector/replyr/blob/master/issues/SQLitesd.md
+                      if(ngood<=1) {
+                        si$sd <- NA
+                      }
                       nunique = NA
-                      if(countUnique) {
+                      if(countUniqueNum) {
                         xsub %>% replyr_uniqueValues(ci) %>% replyr_nrow() -> nunique
                       }
                       si <-  data.frame(column=ci,
@@ -108,7 +121,7 @@ replyr_summary <- function(x,countUnique=TRUE) {
                                          stringsAsFactors = FALSE)
                       }
                       nunique = NA
-                      if(countUnique) {
+                      if(countUniqueNonNum) {
                         xsub %>% replyr_uniqueValues(ci) %>% replyr_nrow() -> nunique
                       }
                       si <- data.frame(column=ci,
@@ -134,6 +147,7 @@ replyr_summary <- function(x,countUnique=TRUE) {
   })
   res$class <- classtr[res$column]
   res <- res[order(res$index),]
+  rownames(res) <- NULL
   res
 }
 

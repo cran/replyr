@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2017-02-20" />
+<meta name="date" content="2017-03-13" />
 
 <title>NA rm</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">NA rm</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2017-02-20</em></h4>
+<h4 class="date"><em>2017-03-13</em></h4>
 
 
 
@@ -95,7 +95,6 @@ if (<span class="kw">requireNamespace</span>(<span class="st">&quot;RSQLite&quot
 } else {
   dRemote &lt;-<span class="st"> </span>d <span class="co"># local stand in when we can't make remote</span>
 }
-<span class="co">#&gt; Loading required namespace: RSQLite</span>
 <span class="kw">print</span>(dRemote)
 <span class="co">#&gt; Source:   query [?? x 4]</span>
 <span class="co">#&gt; Database: sqlite 3.11.1 [:memory:]</span>
@@ -206,8 +205,8 @@ for(ci in cols) {
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>())
 <span class="kw">gc</span>()
 <span class="co">#&gt;           used (Mb) gc trigger  (Mb) max used  (Mb)</span>
-<span class="co">#&gt; Ncells  992341 53.0    1770749  94.6  1442291  77.1</span>
-<span class="co">#&gt; Vcells 9701171 74.1   26719797 203.9 25693548 196.1</span></code></pre></div>
+<span class="co">#&gt; Ncells  938804 50.2    1442291  77.1  1442291  77.1</span>
+<span class="co">#&gt; Vcells 9702476 74.1   26714514 203.9 25689146 196.0</span></code></pre></div>
 </div>
 
 
