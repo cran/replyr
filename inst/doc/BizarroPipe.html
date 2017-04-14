@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2017-03-13" />
+<meta name="date" content="2017-04-13" />
 
 <title>Bizarro Pipe</title>
 
@@ -70,23 +70,15 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Bizarro Pipe</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2017-03-13</em></h4>
+<h4 class="date"><em>2017-04-13</em></h4>
 
 
 
 <p>“Bizarro Pipe” is a debugging tool for long <code>dplyr</code> pipelines. It is simply the idea that the glyph <code>-&gt;.;</code> behaves like an eager replacement for the <code>magrittr</code> pipe <code>%&gt;%</code> and makes single step debugging much easier.</p>
 <p>Here is a typical example using the <code>magrittr</code> and <code>dplyr</code> (from <a href="https://www.r-statistics.com/2014/08/simpler-r-coding-with-pipes-the-present-and-future-of-the-magrittr-package/">here</a>):</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;babynames&quot;</span>) <span class="co"># data package</span>
-<span class="kw">library</span>(<span class="st">&quot;dplyr&quot;</span>)     <span class="co"># provides data manipulating functions.</span></code></pre></div>
-<pre><code>## 
-## Attaching package: 'dplyr'</code></pre>
-<pre><code>## The following objects are masked from 'package:stats':
-## 
-##     filter, lag</code></pre>
-<pre><code>## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;magrittr&quot;</span>)  <span class="co"># ceci n'est pas un pipe</span>
+<span class="kw">library</span>(<span class="st">&quot;dplyr&quot;</span>)     <span class="co"># provides data manipulating functions.</span>
+<span class="kw">library</span>(<span class="st">&quot;magrittr&quot;</span>)  <span class="co"># ceci n'est pas un pipe</span>
 <span class="kw">library</span>(<span class="st">&quot;ggplot2&quot;</span>)   <span class="co"># for graphics</span>
 
 babynames %&gt;%

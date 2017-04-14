@@ -1,8 +1,13 @@
 
+'replyr' 0.2.5 2017-04-14
+
+ * Remove all use of dplyr underbar/underscore forms to future proof as these are already deprecated in dev ( https://github.com/hadley/dplyr/blob/master/R/manip.r 33d0b1ecaa22644e0d78345b13d5f8aca5d949b ).
+ * re-introduce moving values between rows and columns.
+
 'replyr' 0.2.4 2017-03-13
 
  * Respond to "CRAN packages maintained by you" request (images in root dir).
- * Fix unique_valeus can't use "n" issue.
+ * Fix unique_values can't use "n" issue.
  * Fix sd on SQLite issue.
 
 'replyr' 0.2.3 2017-02-20

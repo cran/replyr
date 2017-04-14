@@ -2,12 +2,13 @@
 # Contributed by John Mount jmount@win-vector.com , ownership assigned to Win-Vector LLC.
 # Win-Vector LLC currently distributes this code without intellectual property indemnification, warranty, claim of fitness of purpose, or any other guarantee under a GPL3 license.
 
-#' @importFrom dplyr %>% ungroup summarize transmute
+#' @importFrom dplyr ungroup summarize transmute
 NULL
 
 #' Compute number of rows of a tbl.
 #'
 #' Number of row in a table.  This function is not "group aware" it returns the total number of rows, not rows per dplyr group.
+#' Also \code{replyr_nrow} depends on data being returned to count, so some corner cases (such as zero columns) will count as zero rows.
 #'
 #' @param x tbl or item that can be coerced into such.
 #' @return number of rows
