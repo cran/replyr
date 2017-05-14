@@ -4,7 +4,7 @@
 
 <head>
 
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 
@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2017-04-13" />
+<meta name="date" content="2017-05-13" />
 
 <title>replyr</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">replyr</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2017-04-13</em></h4>
+<h4 class="date"><em>2017-05-13</em></h4>
 
 
 
@@ -140,7 +140,7 @@ d %&gt;%<span class="st"> </span><span class="kw">ComputeRatioOfColumns</span>(<
 <p>Substitute without extra notation (errors-out).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">eval</span>(<span class="kw">substitute</span>(d %&gt;%<span class="st"> </span><span class="kw">mutate</span>(<span class="dt">RankColumn=</span>RankColumn<span class="dv">-1</span>),
                 <span class="kw">list</span>(<span class="dt">RankColumn=</span><span class="st">'rank'</span>)))
- <span class="co">#  Error in eval(expr, envir, enclos): non-numeric argument to binary operator</span></code></pre></div>
+ <span class="co">#  Error in mutate_impl(.data, dots): non-numeric argument to binary operator</span></code></pre></div>
 <p>Notice in both working cases the <code>dplyr::mutate</code> result landed in a column named <code>RankColumn</code> and not in the desired column <code>rank</code>. The <code>wrapr::let</code> form is concise and works correctly.</p>
 <p>Similarly <code>base::with</code> can not perform the needed name remapping, none of the following variations simulate a name to name substitution.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># rank &lt;- NULL # hide binding of rank to function</span>
@@ -295,8 +295,8 @@ dRemote %&gt;%<span class="st"> </span>replyr::<span class="kw">replyr_filter</s
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>())
 <span class="kw">gc</span>()
  <span class="co">#            used (Mb) gc trigger  (Mb) max used  (Mb)</span>
- <span class="co">#  Ncells  929725 49.7    1442291  77.1  1442291  77.1</span>
- <span class="co">#  Vcells 9688866 74.0   26574036 202.8 25572080 195.1</span></code></pre></div>
+ <span class="co">#  Ncells  914187 48.9    1442291  77.1  1442291  77.1</span>
+ <span class="co">#  Vcells 9894134 75.5   26979071 205.9 25976122 198.2</span></code></pre></div>
 </div>
 
 
@@ -306,7 +306,7 @@ dRemote %&gt;%<span class="st"> </span>replyr::<span class="kw">replyr_filter</s
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>

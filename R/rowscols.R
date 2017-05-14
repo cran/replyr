@@ -17,8 +17,9 @@ NULL
 #' @param nameForNewKeyColumn character name of column to write new keys in.
 #' @param nameForNewValueColumn character name of column to write new values in.
 #' @param columnsToTakeFrom character array names of columns to take values from.
+#' @param ... force later columns to bind by name.
 #' @param na.rm logical if TRUE remove rows with NA in nameForNewValueColumn.
-#' @param eagerCompute if TRUE call compute on intermediate results
+#' @param tempNameGenerator temp name generator produced by replyr::makeTempNameGenerator, used to record dplyr::compute() effects.
 #' @return data item
 #'
 #' @examples
@@ -43,8 +44,12 @@ replyr_moveValuesToRows <- function(data,
                                     nameForNewKeyColumn,
                                     nameForNewValueColumn,
                                     columnsToTakeFrom,
+                                    ...,
                                     na.rm= FALSE,
-                                    eagerCompute= FALSE) {
+                                    tempNameGenerator= makeTempNameGenerator("replyr_moveValuesToRows")) {
+  if(length(list(...))>0) {
+    stop("replyr::replyr_moveValuesToRows unexpected arguments")
+  }
   if((!is.character(columnsToTakeFrom))||(length(columnsToTakeFrom)<1)) {
     stop('replyr_moveValuesToRows columnsToTakeFrom must be a non-NA non-empty character vector')
   }
@@ -59,6 +64,7 @@ replyr_moveValuesToRows <- function(data,
   if(nameForNewKeyColumn==nameForNewValueColumn) {
     stop('replyr_moveValuesToRows nameForNewValueColumn must not equal nameForNewKeyColumn')
   }
+  data <- dplyr::ungroup(data)
   cnames <- colnames(data)
   if(!all(columnsToTakeFrom %in% cnames)) {
     stop('replyr_moveValuesToRows columnsToTakeFrom must all be data column names')
@@ -102,10 +108,11 @@ replyr_moveValuesToRows <- function(data,
                     )
                     # worry about drifting ref issue
                     # See issues/TrailingRefIssue.Rmd
-                    dtmp %>% dplyr::compute() -> dtmp
+                    dtmp %>% dplyr::compute(name= tempNameGenerator()) -> dtmp
                     dtmp
                   })
-  res <- replyr_bind_rows(rlist, eagerCompute=eagerCompute)
+  res <- replyr_bind_rows(rlist,
+                          tempNameGenerator=tempNameGenerator)
   if(na.rm) {
     NEWCOL <- NULL  # declare not unbound
     let(
@@ -130,10 +137,11 @@ replyr_moveValuesToRows <- function(data,
 #' @param columnToTakeKeysFrom character name of column build new column names from.
 #' @param columnToTakeValuesFrom character name of column to get values from.
 #' @param rowKeyColumns character array names columns that should be table keys.
+#' @param ... force later arguments to bind by name
+#' @param tempNameGenerator temp name generator produced by replyr::makeTempNameGenerator, used to record dplyr::compute() effects.
 #' @param fill value to fill in missing values from original (both those that are originally explicitly NA, and those not present as rows).
 #' @param sep character, if not null build composite column names as COLsepVALUE, use new columns names are just VALUE.
 #' @param maxcols maximum number of values to expand to columns
-#' @param eagerCompute if TRUE call compute on intermediate results
 #' @param dosummarize logical, if TRUE finish the moveValuesToColumns by summarizing rows.
 #' @return data item
 #'
@@ -161,11 +169,15 @@ replyr_moveValuesToColumns <- function(data,
                                        columnToTakeKeysFrom,
                                        columnToTakeValuesFrom,
                                        rowKeyColumns,
+                                       ...,
                                        fill= NA,
                                        sep= NULL,
                                        maxcols= 100,
-                                       eagerCompute= TRUE,
-                                       dosummarize= TRUE) {
+                                       dosummarize= TRUE,
+                                       tempNameGenerator= makeTempNameGenerator("replyr_moveValuesToColumns")) {
+  if(length(list(...))>0) {
+    stop("replyr::replyr_moveValuesToColumns unexpected arguments.")
+  }
   if(length(rowKeyColumns)>0) {
     if((!is.character(rowKeyColumns))||(length(rowKeyColumns)!=1)||
      (nchar(rowKeyColumns)<1)) {
@@ -183,6 +195,7 @@ replyr_moveValuesToColumns <- function(data,
   if(columnToTakeKeysFrom==columnToTakeValuesFrom) {
     stop('replyr_moveValuesToColumns rowKeyColumns,columnToTakeKeysFrom,columnToTakeValuesFrom must all be distinct')
   }
+  data <- dplyr::ungroup(data)
   cnames <- colnames(data)
   if(!(columnToTakeKeysFrom %in% cnames)) {
     stop('replyr_moveValuesToColumns columnToTakeKeysFrom must be a data column name')
@@ -249,7 +262,7 @@ replyr_moveValuesToColumns <- function(data,
     )
     # Must call compute here or ci value changing changes mutate.
     # See issues/TrailingRefIssue.Rmd
-    data <- compute(data)
+    data <- compute(data, name= tempNameGenerator())
   }
   copyCols <- c(setdiff(cnames, mcols), newCols)
   data %>%
@@ -278,10 +291,7 @@ replyr_moveValuesToColumns <- function(data,
     )
     # Must call compute here or ci value changing changes mutate.
     # See issues/TrailingRefIssue.Rmd
-    data <- compute(data)
-  }
-  if(eagerCompute) {
-    data <- dplyr::compute(data)
+    data <- compute(data, name= tempNameGenerator())
   }
   data
 }

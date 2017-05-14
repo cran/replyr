@@ -4,7 +4,7 @@
 
 <head>
 
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 
@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2017-04-13" />
+<meta name="date" content="2017-05-13" />
 
 <title>coalesce</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">coalesce</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2017-04-13</em></h4>
+<h4 class="date"><em>2017-05-13</em></h4>
 
 
 
@@ -170,13 +170,13 @@ replyr::<span class="kw">replyr_coalesce</span>(dbData, dbSupport,
 ## 1   2005     6     a
 ## 2   2007     1     b
 ## 3   2010    NA     c
-## 4   2006     0     a
-## 5   2007     0     a
-## 6   2008     0     a
-## 7   2009     0     a
-## 8   2010     0     a
-## 9   2005     0     b
-## 10  2006     0     b
+## 4   2005     0     b
+## 5   2005     0     c
+## 6   2005     0     d
+## 7   2006     0     a
+## 8   2006     0     b
+## 9   2006     0     c
+## 10  2006     0     d
 ## # ... with more rows</code></pre>
 <p>As we mentioned <code>replyr_coalesce</code> only alter column that it has added. Under this convention the column “<code>n</code>” is not zeroed in the “<code>c</code>-row”.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">d &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">x=</span><span class="kw">c</span>(<span class="st">'a'</span>,<span class="st">'c'</span>), <span class="dt">n=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="ot">NA</span>), 
@@ -208,8 +208,8 @@ s &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>())
 <span class="kw">gc</span>()</code></pre></div>
 <pre><code>##           used (Mb) gc trigger  (Mb) max used  (Mb)
-## Ncells  892192 47.7    1442291  77.1  1442291  77.1
-## Vcells 9585183 73.2   26574036 202.8 25572080 195.1</code></pre>
+## Ncells  875284 46.8    1442291  77.1  1442291  77.1
+## Vcells 9829260 75.0   26979071 205.9 25976122 198.2</code></pre>
 
 
 
@@ -218,7 +218,7 @@ s &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>

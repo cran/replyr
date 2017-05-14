@@ -4,7 +4,7 @@
 
 <head>
 
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 
@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2017-04-13" />
+<meta name="date" content="2017-05-13" />
 
 <title>NA rm</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">NA rm</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2017-04-13</em></h4>
+<h4 class="date"><em>2017-05-13</em></h4>
 
 
 
@@ -95,6 +95,7 @@ if (<span class="kw">requireNamespace</span>(<span class="st">&quot;RSQLite&quot
 } else {
   dRemote &lt;-<span class="st"> </span>d <span class="co"># local stand in when we can't make remote</span>
 }
+<span class="co">#&gt; Loading required namespace: RSQLite</span>
 <span class="kw">print</span>(dRemote)
 <span class="co">#&gt; Source:   query [?? x 4]</span>
 <span class="co">#&gt; Database: sqlite 3.11.1 [:memory:]</span>
@@ -196,7 +197,7 @@ for(ci in cols) {
 <span class="co">#&gt; 2 2 5 a      2</span>
 
 <span class="kw">no.omit</span>(dRemote)
-<span class="co">#&gt; Error in eval(expr, envir, enclos): could not find function &quot;no.omit&quot;</span></code></pre></div>
+<span class="co">#&gt; Error in no.omit(dRemote): could not find function &quot;no.omit&quot;</span></code></pre></div>
 <p>It is fairly clear how we can build <code>na.omit</code> from <code>complete.cases</code>.</p>
 </div>
 </div>
@@ -205,8 +206,8 @@ for(ci in cols) {
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>())
 <span class="kw">gc</span>()
 <span class="co">#&gt;           used (Mb) gc trigger  (Mb) max used  (Mb)</span>
-<span class="co">#&gt; Ncells  922702 49.3    1442291  77.1  1442291  77.1</span>
-<span class="co">#&gt; Vcells 9603679 73.3   26574036 202.8 25572080 195.1</span></code></pre></div>
+<span class="co">#&gt; Ncells  866618 46.3    1442291  77.1  1442291  77.1</span>
+<span class="co">#&gt; Vcells 9808526 74.9   26979071 205.9 25976122 198.2</span></code></pre></div>
 </div>
 
 
@@ -216,7 +217,7 @@ for(ci in cols) {
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>

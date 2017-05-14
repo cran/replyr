@@ -4,7 +4,7 @@
 
 <head>
 
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 
@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2017-04-13" />
+<meta name="date" content="2017-05-13" />
 
 <title>Parametric Programming in R</title>
 
@@ -70,11 +70,11 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Parametric Programming in R</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2017-04-13</em></h4>
+<h4 class="date"><em>2017-05-13</em></h4>
 
 
 
-<p>Consider the problem of “parametric programming.” That i:s simply writing correct code before knowing some details, such as the names of the columns your procedure will have to be applied to in the future.</p>
+<p>Consider the problem of “parametric programming.” That is: simply writing correct code before knowing some details, such as the names of the columns your procedure will have to be applied to in the future.</p>
 <p>Suppose, for example, your task was to and build a new advisory column that tells you which values in a column of a <code>data.frame</code> are missing or <code>NA</code>. We will illustrate this in <a href="https://cran.r-project.org">R</a> using the example data given below:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">d &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">x =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="ot">NA</span>))
 <span class="kw">print</span>(d)
@@ -99,7 +99,7 @@ rname &lt;-<span class="st"> </span><span class="kw">paste</span>(cname, <span c
 <p>And writing the matching code is again trivial:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">d[[rname]] &lt;-<span class="st"> </span><span class="kw">is.na</span>(d[[cname]])</code></pre></div>
 <p>We are now programming at a slightly higher level, or automating tasks. We don’t need to type in new code each time a new data set with a different column name comes in. It is now easy to write a <code>for-loop</code> or <code>lapply</code> over a list of columns to analyze many columns in a single data set. It is an absolute travesty when something that is purely virtual (such as formulas and data) can not be automated over. So the slightly clunkier “<code>[[]]</code>” notation (which can be automated) is a necessary complement to the more convenient “<code>$</code>” notation (which is too specific to be easily automated over).</p>
-<p>Using <code>dplyr</code> directly (when you know all the names) is deliberately straightforward, but programming over <code>dplyr</code> can become a challenge.</p>
+<p>Using <code>dplyr</code> directly (when you know all the names) is deliberately straightforward, but programming over <code>dplyr</code> (as of May 12, 2017, prior to <code>dplyr</code> <code>0.6*</code> and the conversion to <a href="https://CRAN.R-project.org/package=rlang"><code>rlang</code>/<code>tidyeval</code></a> interfaces) can become a challenge.</p>
 <div id="standard-practice" class="section level2">
 <h2>Standard practice</h2>
 <p>The standard parametric <code>dplyr</code> practice is to use <code>dplyr::mutate_</code> (the standard evaluation or parametric variation of <code>dplyr::mutate</code>). Unfortunately the notation in using such an “underbar form” is currently cumbersome.</p>
@@ -208,7 +208,7 @@ d %&gt;%<span class="st"> </span>replyr::<span class="kw">letp</span>(<span clas
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>

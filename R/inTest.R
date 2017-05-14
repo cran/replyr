@@ -13,6 +13,8 @@ NULL
 #' @param cname name of the column to test values of.
 #' @param values set of values to check set membership of.
 #' @param nname name for new column
+#' @param ... force later parameters to bind by name
+#' @param tempNameGenerator temp name generator produced by replyr::makeTempNameGenerator, used to record dplyr::compute() effects.
 #' @param verbose logical if TRUE echo warnings
 #' @return table with membership indications.
 #'
@@ -24,7 +26,13 @@ NULL
 #' replyr_inTest(d,'x',values,'match')
 #'
 #' @export
-replyr_inTest <- function(x,cname,values,nname,verbose=TRUE) {
+replyr_inTest <- function(x,cname,values,nname,
+                          ...,
+                          tempNameGenerator= makeTempNameGenerator("replyr_inTest"),
+                          verbose=TRUE) {
+  if(length(list(...))>0) {
+    stop("replyr::replyr_inTest unexpected arguments.")
+  }
   if((!is.character(cname))||(length(cname)!=1)||(cname[[1]]=='n')) {
     stop('replyr_inTest cname must be a single string not equal to "n"')
   }
@@ -51,7 +59,7 @@ replyr_inTest <- function(x,cname,values,nname,verbose=TRUE) {
   good <- FALSE
   tryCatch({
     x %>% dplyr::left_join(jtab,by=byClause,copy=TRUE) %>%
-      dplyr::compute() -> res;
+      dplyr::compute(name= tempNameGenerator()) -> res;
     good <- TRUE},
     error = function(x)  {
       if(verbose) {
@@ -62,11 +70,10 @@ replyr_inTest <- function(x,cname,values,nname,verbose=TRUE) {
   # Try to fix it.
   if((!good) && ('tbl_spark' %in% class(x))) {
     cn <- dplyr_src_to_db_handle(x$src)
-    tmpnam <- paste('replyr_intest_tmp',sample.int(1000000000,1),sep='_')
+    tmpnam <- tempNameGenerator()
     tmp <- replyr_copy_to(cn,jtab,tmpnam)
     x %>% dplyr::left_join(tmp,by=byClause) %>%
-      dplyr::compute() -> res
-    dplyr::db_drop_table(cn,tmpnam)
+      dplyr::compute(name= tempNameGenerator()) -> res
   }
   # replace NA with false
   RCOL <- NULL # declare no external binding

@@ -4,7 +4,7 @@
 
 <head>
 
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 
@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2017-04-13" />
+<meta name="date" content="2017-05-13" />
 
 <title>summary</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">summary</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2017-04-13</em></h4>
+<h4 class="date"><em>2017-05-13</em></h4>
 
 
 
@@ -111,13 +111,13 @@ replyr::<span class="kw">replyr_summary</span>(dbData)
 dplyr::<span class="kw">glimpse</span>(dbData)
  <span class="co">#  Observations: NA</span>
  <span class="co">#  Variables: 2</span>
- <span class="co">#  $ x &lt;chr&gt; NA, &quot;b&quot;</span>
- <span class="co">#  $ y &lt;dbl&gt; 1, NA</span></code></pre></div>
+ <span class="co">#  $ src &lt;S3: src_sqlite&gt; NA, &quot;b&quot;</span>
+ <span class="co">#  $ ops &lt;S3: op_base_remote&gt; 1, NA</span></code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>())
 <span class="kw">gc</span>()
  <span class="co">#            used (Mb) gc trigger  (Mb) max used  (Mb)</span>
- <span class="co">#  Ncells  930794 49.8    1442291  77.1  1442291  77.1</span>
- <span class="co">#  Vcells 9686213 73.9   26574036 202.8 25572080 195.1</span></code></pre></div>
+ <span class="co">#  Ncells  916280 49.0    1442291  77.1  1442291  77.1</span>
+ <span class="co">#  Vcells 9896221 75.6   26979071 205.9 25976122 198.2</span></code></pre></div>
 
 
 
@@ -126,7 +126,7 @@ dplyr::<span class="kw">glimpse</span>(dbData)
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>
