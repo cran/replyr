@@ -2,46 +2,71 @@
 # Contributed by John Mount jmount@win-vector.com , ownership assigned to Win-Vector LLC.
 # Win-Vector LLC currently distributes this code without intellectual property indemnification, warranty, claim of fitness of purpose, or any other guarantee under a GPL3 license.
 
-#' Return a cannonical name of the data service hosting a given data object.
+
+# get the db handle from a dplyr src
+# Spark2 handles are DBIConnection s
+# SQLite are not
+# this distinciton is going away post dplyr 0.5.0
+dplyr_src_to_db_handle <- function(dplyr_src) {
+  if("DBIConnection" %in% class(dplyr_src)) {
+    return(dplyr_src)
+  }
+  return(dplyr_src$con)
+}
+
+
+#' list tables
+#'
+#' Work around connection v.s. handle issues \url{https://github.com/tidyverse/dplyr/issues/2849}
 #'
 #'
-#' @param df data object
-#' @param expectedNames some names to canonicalize to.
-#' @return cannonical service name (lenght 1 character array)
+#' @param con connection
+#' @return list of tables names
+#'
 #'
 #' @examples
 #'
-#' replyr_dataServiceName(data.frame(x=1))
-#' replyr_dataServiceName(dplyr::as.tbl(data.frame(x=1)))
+#' if (requireNamespace("RSQLite", quietly = TRUE)) {
+#'   my_db <- dplyr::src_sqlite(":memory:", create = TRUE)
+#'   d <- replyr_copy_to(my_db, data.frame(x=c(1,2)), 'd')
+#'   print(d)
+#'   replyr_list_tables(my_db)
+#' }
 #'
 #' @export
-replyr_dataServiceName <- function(df,
-  expectedNames=c('src_sqlite','spark_connection','src_spark',
-                  'src_mysql', 'src_postgres')) {
-  cls <- class(df)
-  if(length(cls)<=1) {
-    return(cls)  # "data.frame" case
-  }
-  if(('tbl' %in% cls) && all(cls %in% c("data.frame","tbl","tbl_df"))) {
-    return("tbl")
-  }
-  srvcls <- sort(class(df$src))
-  if(is.null(srvcls)) {
-    # give up
-    return(paste(sort(cls),collapse=' '))
-  }
-  for(m in expectedNames) {
-    if(m %in% srvcls) {
-      return(m)
-    }
-  }
-  # give up
-  return(paste(sort(srvcls),collapse=' '))
+#'
+replyr_list_tables <- function(con) {
+  cn <- dplyr_src_to_db_handle(con)
+  dplyr::db_list_tables(cn)
+}
+
+#' check for table
+#'
+#' Work around connection v.s. handle issues \url{https://github.com/tidyverse/dplyr/issues/2849}
+#'
+#' @param con connection
+#' @param name character name to check for
+#' @return TRUE if table present
+#'
+#'
+#' @examples
+#'
+#' if (requireNamespace("RSQLite", quietly = TRUE)) {
+#'   my_db <- dplyr::src_sqlite(":memory:", create = TRUE)
+#'   d <- replyr_copy_to(my_db, data.frame(x=c(1,2)), 'd')
+#'   print(d)
+#'   replyr_has_table(my_db, 'd')
+#' }
+#'
+#' @export
+#'
+replyr_has_table <- function(con, name) {
+  cn <- dplyr_src_to_db_handle(con)
+  dplyr::db_has_table(cn, name)
 }
 
 #' Get the "remote data source" where a data.frame like object lives.
 #'
-#' NOT TESTED YET!
 #'
 #' @param df data.frame style object
 #' @return source (string if data.frame, tlb, or data.table, NULL if unknown, remote source otherwise)
@@ -77,3 +102,79 @@ replyr_get_src <- function(df) {
   # unknown
   return(NULL)
 }
+
+#' Test if data is local.
+#'
+#' @param d data frame
+#' @return TRUE if local data (data.frame, tbl/tibble)
+#'
+#' @examples
+#'
+#' replyr_is_local_data(data.frame(x=1:3))
+#'
+#' @export
+replyr_is_local_data <- function(d) {
+  if(is.null(d)) {
+    return(TRUE)
+  }
+  sc <- replyr_get_src(d)
+  if(is.null(sc) || is.character(sc)) {
+    return(TRUE)
+  }
+  return(FALSE)
+}
+
+#' Test if data is Spark.
+#'
+#' @param d data frame
+#' @return TRUE if Spark data
+#'
+#' @examples
+#'
+#' replyr_is_Spark_data(data.frame(x=1:3))
+#'
+#' @export
+replyr_is_Spark_data <- function(d) {
+  if(is.null(d)) {
+    return(FALSE)
+  }
+  sc <- replyr_get_src(d)
+  if(is.null(sc) || is.character(sc)) {
+    return(FALSE)
+  }
+  if(length(grep('spark_', tolower(class(sc$con))))>0) {
+    return(TRUE)
+  }
+  if(length(grep('spark_', tolower(class(sc))))>0) {
+    return(TRUE)
+  }
+  return(FALSE)
+}
+
+#' Test if data is MySQL.
+#'
+#' @param d data frame
+#' @return TRUE if Spark data
+#'
+#' @examples
+#'
+#' replyr_is_MySQL_data(data.frame(x=1:3))
+#'
+#' @export
+replyr_is_MySQL_data <- function(d) {
+  if(is.null(d)) {
+    return(FALSE)
+  }
+  sc <- replyr_get_src(d)
+  if(is.null(sc) || is.character(sc)) {
+    return(FALSE)
+  }
+  if(length(grep('mysql', tolower(class(sc$con))))>0) {
+    return(TRUE)
+  }
+  if(length(grep('mysql', tolower(class(sc))))>0) {
+    return(TRUE)
+  }
+  return(FALSE)
+}
+

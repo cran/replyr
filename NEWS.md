@@ -1,4 +1,15 @@
 
+'replyr' 0.4.0 2017-06-12
+
+ * Introduce executeLeftJoinPlan join controller.
+ * Introduce replyr::replyr_apply_f_mapped.
+ * better detection of data service providers.
+ * Documentation corrections and improvements.
+ * Add optional class annotation when moving values to rows.
+ * Adapt to stricter wrapr signatures.
+ * prepare for dplyr 0.6.0/0.7.0
+
+ 
 'replyr' 0.3.01 2017-05-13
 
  * much better tracking of temp-handle names.

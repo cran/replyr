@@ -5,7 +5,8 @@
 \title{Copy data to remote service.}
 \usage{
 replyr_copy_to(dest, df, name = deparse(substitute(df)), ...,
-  rowNumberColumn = NULL)
+  rowNumberColumn = NULL, temporary = FALSE, overwrite = TRUE,
+  maxrow = 1e+06, forceDelete = FALSE)
 }
 \arguments{
 \item{dest}{remote data source}
@@ -17,6 +18,14 @@ replyr_copy_to(dest, df, name = deparse(substitute(df)), ...,
 \item{...}{force later values to be bound by name}
 
 \item{rowNumberColumn}{if not null name to add row numbers to}
+
+\item{temporary}{logical, if TRUE try to create a temporary table}
+
+\item{overwrite}{logical, if TRUE try to overwrite}
+
+\item{maxrow}{max rows to allow in a remote to remote copy.}
+
+\item{forceDelete}{logical, if TRUE try to delete table.}
 }
 \value{
 remote handle

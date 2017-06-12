@@ -8,9 +8,9 @@ replyr_union_all(tabA, tabB, ..., cols = NULL,
   tempNameGenerator = makeTempNameGenerator("replyr_union_all"))
 }
 \arguments{
-\item{tabA}{table with at least 1 row.}
+\item{tabA}{not-NULL table with at least 1 row.}
 
-\item{tabB}{table with at least on same data source as tabA and commmon columns.}
+\item{tabB}{not-NULL table with at least on same data source as tabA and commmon columns.}
 
 \item{...}{force later arguments to be bound by name.}
 
@@ -25,7 +25,6 @@ table with all rows of tabA and tabB (union_all).
 Spark 2* union_all has issues ( https://github.com/WinVector/replyr/blob/master/issues/UnionIssue.md ),
 and exponsed union_all semantics differ from data-source backend to backend.
 This is an attempt to provide a join-based replacement.
-NOT YET TESTED.
 }
 \examples{
 

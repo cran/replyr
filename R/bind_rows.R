@@ -8,10 +8,9 @@
 #' Spark 2* union_all has issues ( https://github.com/WinVector/replyr/blob/master/issues/UnionIssue.md ),
 #' and exponsed union_all semantics differ from data-source backend to backend.
 #' This is an attempt to provide a join-based replacement.
-#' NOT YET TESTED.
 #'
-#' @param tabA table with at least 1 row.
-#' @param tabB table with at least on same data source as tabA and commmon columns.
+#' @param tabA not-NULL table with at least 1 row.
+#' @param tabB not-NULL table with at least on same data source as tabA and commmon columns.
 #' @param ... force later arguments to be bound by name.
 #' @param cols list of column names to limit to (defaults to intersection), must be non-empty and contained in intersection.
 #' @param tempNameGenerator temp name generator produced by replyr::makeTempNameGenerator, used to record dplyr::compute() effects.
@@ -30,10 +29,23 @@ replyr_union_all <- function(tabA, tabB, ...,
   if(length(list(...))>0) {
     stop("replyr::replyr_union_all unexpected arguments.")
   }
+  if(!is.null(tabA)) {
+    tabA <- dplyr::ungroup(tabA)
+  }
+  if(!is.null(tabB)) {
+    tabB <- dplyr::ungroup(tabB)
+  }
+  # work on some corners cases (being a bit more generous than the documentation)
   if(replyr_nrow(tabA)<1) {
+    if(!is.null(cols)) {
+      return(tabB %>% select(one_of(cols)))
+    }
     return(tabB)
   }
   if(replyr_nrow(tabB)<1) {
+    if(!is.null(cols)) {
+      return(tabA %>% select(one_of(cols)))
+    }
     return(tabA)
   }
   if(is.null(cols)) {
@@ -42,8 +54,7 @@ replyr_union_all <- function(tabA, tabB, ...,
   if(length(cols)<=0) {
     stop("replyr::replyr_union_all empty column list")
   }
-  sc <- replyr_get_src(tabA)
-  if((is.null(sc))||(is.character(sc))) {
+  if(replyr_is_local_data(tabA)) {
     # local, can use dplyr
     return(dplyr::bind_rows(select(tabA, one_of(cols)) ,
                             select(tabB, one_of(cols))))
@@ -57,14 +68,21 @@ replyr_union_all <- function(tabA, tabB, ...,
   # build a 2-row table to control the union
   controlTable <- data.frame(replyrunioncol= c('a', 'b'),
                              stringsAsFactors = FALSE)
-  controlTable <- dplyr::copy_to(sc, controlTable, name=tempNameGenerator())
+  if(!replyr_is_local_data(tabA)) {
+    sc <- replyr_get_src(tabA)
+    controlTable <- replyr_copy_to(sc, controlTable,
+                                   name=tempNameGenerator(),
+                                   temporary=TRUE)
+  }
   # decorate left and right tables for the merge
   tabA <- tabA %>%
     select(one_of(cols)) %>%
-    mutate(replyrunioncol= 'a')
+    addConstantColumn(mergeColName, 'a',
+                      tempNameGenerator=tempNameGenerator)
   tabB <- tabB %>%
     select(one_of(cols)) %>%
-    mutate(replyrunioncol= 'b')
+    addConstantColumn(mergeColName, 'b',
+                      tempNameGenerator=tempNameGenerator)
   # do the merges
   joined <- controlTable %>%
     left_join(tabA, by=mergeColName) %>%
@@ -92,6 +110,9 @@ replyr_union_all <- function(tabA, tabB, ...,
 r_replyr_bind_rows <- function(lst, colnames, tempNameGenerator) {
   n <- length(lst)
   if(n<=1) {
+    if(n<=0) {
+      stop("replyr:::r_replyr_bind_rows called with empty list")
+    }
     res <- lst[[1]]
     res <- dplyr::compute(res,
                           name= tempNameGenerator())
@@ -127,18 +148,25 @@ replyr_bind_rows <- function(lst,
   if(length(list(...))>0) {
     stop("replyr::replyr_bind_rows unexpected arguments")
   }
-  if(("NULL" %in% class(lst))||(length(lst)<=0)) {
-    return(NULL)
+  if(length(lst)<=1) {
+    if(length(lst)<=0) {
+      return(NULL)
+    }
+    return(lst[[1]])
   }
   # remove any nulls or trivial data items.
   lst <- Filter(function(ri) { replyr_nrow(ri)>0 }, lst)
-  if(length(lst)<=0) {
-    return(NULL)
+  if(length(lst)<=1) {
+    if(length(lst)<=0) {
+      return(NULL)
+    }
+    return(lst[[1]])
   }
   names(lst) <- NULL
   colnames <- Reduce(intersect, lapply(lst, colnames))
   if(length(colnames)<=0) {
     return(NULL)
   }
+  lst <- lapply(lst, dplyr::ungroup)
   r_replyr_bind_rows(lst, colnames, tempNameGenerator)
 }

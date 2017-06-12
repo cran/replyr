@@ -9,11 +9,6 @@
 replyr_ranksummaries <- function(x,
                                  GroupColumnName,ValueColumnName,RankColumnName,
                                  decreasing=FALSE) {
-  # # renaming strategy
-  # nmap <- c('GroupColumn','ValueColumn','RankColumn')
-  # names(nmap) <-  c(GroupColumnName,ValueColumnName,RankColumnName)
-  # x <- replyr_renameRestrictCols(x,nmap)
-
   # let strategy
   RankColumn <- NULL # false binding for 'RankColumn' so name does not look unbound to CRAN check
   GroupColumn <- NULL # false binding for 'GroupColumn' so name does not look unbound to CRAN check
@@ -32,23 +27,24 @@ replyr_ranksummaries <- function(x,
       n <- replyr::replyr_nrow(x)
       x %>% dplyr::filter(!(RankColumn %in% 1:n)) %>%
         replyr::replyr_nrow() -> nBadRanks
-      x %>% replyr::replyr_uniqueValues('RankColumn') %>%
+      x %>% replyr::replyr_uniqueValues(RankColumnName) %>%
         replyr::replyr_nrow() -> nUniqueRanks
       # had problems with head(n=1) on sparklyr
       # https://github.com/WinVector/replyr/blob/master/issues/HeadIssue.md
-      x %>% replyr::replyr_uniqueValues('GroupColumn') %>%
+      x %>% replyr::replyr_uniqueValues(GroupColumnName) %>%
         head() %>% replyr::replyr_copy_from() %>% head(n=1) -> tmp
       groupID <- tmp$GroupColumn[[1]]
-      x %>% replyr::replyr_uniqueValues('GroupColumn') %>%
+      x %>% replyr::replyr_uniqueValues(GroupColumnName) %>%
         replyr::replyr_nrow() -> nGroups
       # work around sparklyr Spark 1.6.2 join issue by minimizing and renaming columns
       # https://github.com/rstudio/sparklyr/issues/338
       x %>% dplyr::select(-GroupColumn) -> x
       x %>% dplyr::mutate(RankColumn=RankColumn+1) %>%
-        dplyr::rename(RankColumn_n=RankColumn,ValueColumn_n=ValueColumn) -> xNext
+        dplyr::rename(RankColumn_n=RankColumn) %>%
+        dplyr::rename(ValueColumn_n=ValueColumn) -> xNext
       # "by" notation from http://stackoverflow.com/questions/21888910/how-to-specify-names-of-columns-for-x-and-y-when-joining-in-dplyr
       byClause <- paste(RankColumnName,'n',sep='_')
-      names(byClause) <-RankColumnName
+      names(byClause) <- RankColumnName
       # this join does not work with Spark 1.6.2 due to "duplicate columns"
       dplyr::inner_join(x,xNext,byClause) -> xJ
       if(decreasing) {

@@ -18,9 +18,14 @@
 #' @export
 #'
 replyr_rename <- function(.data, newName, oldName) {
-  REPLYR_PRIVATE_NEWNAME <- NULL # declare not an unbound name
-  REPLYR_PRIVATE_OLDNAME <- NULL # declare not an unbound name
+  newName <- as.character(newName)
+  oldName <- as.character(oldName)
+  if((length(newName)!=1)||(length(oldName)!=1)) {
+    stop("replyr::replyr_rename newName and oldName must be length 1 character vectors")
+  }
   if(newName!=oldName) {
+    REPLYR_PRIVATE_NEWNAME <- NULL # declare not an unbound name
+    REPLYR_PRIVATE_OLDNAME <- NULL # declare not an unbound name
     wrapr::let(
       c(REPLYR_PRIVATE_NEWNAME=newName,
         REPLYR_PRIVATE_OLDNAME=oldName),
@@ -48,6 +53,7 @@ replyr_rename <- function(.data, newName, oldName) {
 #' @export
 #'
 replyr_arrange <- function(.data, colname, descending = FALSE) {
+  colname <- as.character(colname) # remove any names
   REPLYR_PRIVATE_NEWNAME <- NULL # declare not an unbound name
   desc <- function(.) {.} # declare not an unbound name
   if(descending) {
@@ -67,10 +73,12 @@ replyr_arrange <- function(.data, colname, descending = FALSE) {
 }
 
 
-#' group_by by a single column
+#' group_by columns
+#'
+#' See also: \url{https://gist.github.com/skranz/9681509}
 #'
 #' @param .data data object to work on
-#' @param colname character column name
+#' @param colnames character column name (can be a vector)
 #'
 #' @examples
 #'
@@ -81,13 +89,22 @@ replyr_arrange <- function(.data, colname, descending = FALSE) {
 #'
 #' @export
 #'
-replyr_group_by <- function(.data, colname) {
-  REPLYR_PRIVATE_NEWNAME <- NULL # declare not an unbound name
-  wrapr::let(
-    c(REPLYR_PRIVATE_NEWNAME=colname),
-    .data <- dplyr::group_by(.data,
-                             REPLYR_PRIVATE_NEWNAME)
-  )
+replyr_group_by <- function(.data, colnames) {
+  .data <- dplyr::ungroup(.data) # make sure no other grouping
+  colnames <- as.character(colnames) # remove any names
+  if(length(colnames)>1) {
+    expr <- paste('dplyr::group_by( .data ,',
+                  paste(colnames, collapse=', '),
+                  ')')
+    .data <- eval(parse(text= expr))
+  } else {
+    REPLYR_PRIVATE_NEWNAME <- NULL # declare not an unbound name
+    wrapr::let(
+      c(REPLYR_PRIVATE_NEWNAME= colnames), # strip off any outside names
+      .data <- dplyr::group_by(.data,
+                               REPLYR_PRIVATE_NEWNAME)
+    )
+  }
   .data
 }
 
@@ -107,11 +124,12 @@ replyr_group_by <- function(.data, colname) {
 #' @export
 #'
 replyr_select <- function(.data, colnames) {
-  dname <- deparse(substitute(.data))
-  expr <- paste0('dplyr::select( ', dname, ', ',
-                 paste(colnames, collapse = ', '),
-                 ' )')
-  eval(parse(text=expr),
-       envir=parent.frame(),
-       enclos=parent.frame())
+  dplyr::select(.data, one_of(colnames))
+  # dname <- deparse(substitute(.data))
+  # expr <- paste0('dplyr::select( ', dname, ', ',
+  #                paste(colnames, collapse = ', '),
+  #                ' )')
+  # eval(parse(text=expr),
+  #      envir=parent.frame(),
+  #      enclos=parent.frame())
 }

@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2017-05-13" />
+<meta name="date" content="2017-06-12" />
 
 <title>Parametric Programming in R</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Parametric Programming in R</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2017-05-13</em></h4>
+<h4 class="date"><em>2017-06-12</em></h4>
 
 
 
@@ -86,7 +86,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>We used the fact that we are looking at the data interactively to note the only column is “<code>x</code>”, and then picked “<code>x_isNA</code>” as our result name. If we want to use <a href="https://CRAN.R-project.org/package=dplyr"><code>dplyr</code></a> the notation remains straightforward:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;dplyr&quot;</span>)
 <span class="kw">packageVersion</span>(<span class="st">&quot;dplyr&quot;</span>)
- <span class="co">#  [1] '0.5.0'</span>
+ <span class="co">#  [1] '0.7.0'</span>
 d %&gt;%<span class="st"> </span><span class="kw">mutate</span>(<span class="dt">x_isNA =</span> <span class="kw">is.na</span>(x))
  <span class="co">#     x x_isNA</span>
  <span class="co">#  1  1  FALSE</span>
@@ -108,62 +108,10 @@ rname &lt;-<span class="st"> </span><span class="kw">paste</span>(cname, <span c
 <li>A formula</li>
 <li>Using <code>quote()</code></li>
 <li>A string</li>
+<li>Using <code>rlang</code>/<code>tidyeval</code> <code>quosures</code></li>
 </ul>
 <p>(source: <code>dplyr</code> Non-standard evaluation vignette “nse”, for additional theory and upcoming official solutions please see <a href="https://rpubs.com/hadley/lazyeval">here</a>).</p>
 <p>Let us try a few of these to try and emphasize we are proposing a new solution, not because we do not know of the current solutions, but instead because we are familiar with the current solutions.</p>
-<div id="formula-interface" class="section level3">
-<h3>Formula interface</h3>
-<p>Formula interface is a nice option as it is <code>R</code>’s common way for holding names unevaluated. The code looks like the following (using <code>lazyeval::interp</code> to execute):</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">if  (<span class="kw">requireNamespace</span>(<span class="st">&quot;lazyeval&quot;</span>)) {
-  <span class="kw">print</span>(d %&gt;%
-<span class="st">    </span><span class="kw">mutate_</span>(<span class="dt">.dots =</span> stats::<span class="kw">setNames</span>(<span class="kw">list</span>(
-      lazyeval::<span class="kw">interp</span>(~<span class="st"> </span><span class="kw">is.na</span>(VAR),
-                       <span class="dt">VAR =</span> <span class="kw">as.name</span>(cname))), rname)))
-}
- <span class="co">#     x x_isNA</span>
- <span class="co">#  1  1  FALSE</span>
- <span class="co">#  2 NA   TRUE</span></code></pre></div>
-<p>The extra layer of <code>list()</code>-wrapping seems to be needed to successfully control both the name of the input and result (please see <a href="http://www.win-vector.com/blog/2017/02/my-recent-barug-talk-parametric-programming-in-r-with-replyr/#comment-66488">here</a> for the original solution).</p>
-<p>Currently <code>mutate_</code> does not take “two-sided formulas” so we can not write:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">if  (<span class="kw">requireNamespace</span>(<span class="st">&quot;lazyeval&quot;</span>)) {
-  <span class="kw">print</span>(d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt">RCOL =</span> lazyeval::<span class="kw">interp</span>(RES ~<span class="st"> </span><span class="kw">is.na</span>(VAR),
-                                              <span class="dt">VAR=</span> <span class="kw">as.name</span>(cname),
-                                              <span class="dt">RES=</span> <span class="kw">as.name</span>(rname))))
-}
- <span class="co">#  Error: Must use one-sided formula.</span></code></pre></div>
-</div>
-<div id="trying-quote-substitute" class="section level3">
-<h3>Trying <code>quote()</code> / <code>substitute()</code></h3>
-<p><code>quote()</code> can delay evaluation, but isn’t the right tool for parameterizing (what the linked NSE reference called “mixing constants and variable”). We can use the related <code>substitute()</code> method as shown below (notice <code>mutate_</code> ingores our first attempt to name the result and we have to guess/reconstruct what name <code>mutate_</code> ends up using).</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt">.dots =</span>
-    stats::<span class="kw">setNames</span>(<span class="kw">list</span>(<span class="kw">substitute</span>(<span class="kw">is.na</span>(XVAR),<span class="kw">list</span>(<span class="dt">XVAR=</span>cname))),
-                    rname))
- <span class="co">#     x x_isNA</span>
- <span class="co">#  1  1  FALSE</span>
- <span class="co">#  2 NA  FALSE</span></code></pre></div>
-<p>My point is: even if this is something that <em>you</em> know how to accomplish, this is evidence we are really trying to swim upstream with this notation.</p>
-</div>
-<div id="string-solutions" class="section level3">
-<h3>String solutions</h3>
-<p>String based solutions can involve using <code>paste</code> to get parameter values into the strings. Here is an example:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># dplyr mutate_ paste stats::setNames solution</span>
-d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt">.dots =</span>
-                stats::<span class="kw">setNames</span>(<span class="kw">paste0</span>(<span class="st">'is.na('</span>, cname, <span class="st">')'</span>),
-                rname))
- <span class="co">#     x x_isNA</span>
- <span class="co">#  1  1  FALSE</span>
- <span class="co">#  2 NA   TRUE</span></code></pre></div>
-<p>Or just using strings as an interface to control <code>lazyeval::interp</code> (without the formula interface):</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># dplyr mutate_ lazyeval::interp solution</span>
-if  (<span class="kw">requireNamespace</span>(<span class="st">&quot;lazyeval&quot;</span>)) {
-  <span class="kw">print</span>(d %&gt;%<span class="st"> </span><span class="kw">mutate_</span>(<span class="dt">.dots =</span>
-                        stats::<span class="kw">setNames</span>(<span class="kw">list</span>(lazyeval::<span class="kw">interp</span>(<span class="st">&quot;is.na(cname)&quot;</span>,
-                                         <span class="dt">cname =</span> <span class="kw">as.name</span>(cname))), rname)))
-}
- <span class="co">#     x x_isNA</span>
- <span class="co">#  1  1  FALSE</span>
- <span class="co">#  2 NA   TRUE</span></code></pre></div>
-</div>
 </div>
 <div id="our-advice" class="section level2">
 <h2>Our advice</h2>
@@ -178,15 +126,6 @@ wrapr::<span class="kw">let</span>(<span class="dt">alias =</span> <span class="
  <span class="co">#  1  1  FALSE</span>
  <span class="co">#  2 NA   TRUE</span></code></pre></div>
 <p>Notice we are able to use <code>dplyr::mutate</code> instead of needing to invoke <code>dplyr::mutate_</code>. The expression block can be arbitrarily long and contain deep pipelines. We now have a useful separation of concerns, the mapping code is a wrapper completely outside of the user pipeline (the two are no longer commingled). For complicated tasks the ratio of <code>wrapr::let</code> boilerplate to actual useful work goes down quickly.</p>
-<p>We also have a varation for piping into (though to save such pipes for later you use <code>wrapr::let</code>, not <code>replyr::letp</code>):</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># replyr::letp solution</span>
-d %&gt;%<span class="st"> </span>replyr::<span class="kw">letp</span>(<span class="dt">alias =</span> <span class="kw">list</span>(<span class="dt">cname =</span> cname, <span class="dt">rname =</span> rname),
-                   <span class="dt">expr  =</span> {
-                   . %&gt;%<span class="st"> </span><span class="kw">mutate</span>(<span class="dt">rname =</span> <span class="kw">is.na</span>(cname))
-                   })
- <span class="co">#     x x_isNA</span>
- <span class="co">#  1  1  FALSE</span>
- <span class="co">#  2 NA   TRUE</span></code></pre></div>
 <p>The alias map is deliberately only allowed to be a string to string map (no environments, <code>as.name</code>, <code>formula</code>, expressions, or values) so <code>wrapr::let</code> <em>itself</em> is easy to use in automation or program over. I’ll repeat that for emphasis: externally <code>wrapr::let</code> is completely controllable through standard (or parametric) evaluation interfaces. Also notice the code we wrote is never directly mentions “<code>x</code>” or “<code>x_isNA</code>” as it pulls these names out of its execution environment.</p>
 <p>All of these solutions have consequences and corner cases. Our (biased) opinion is: we dislike <code>wrapr::let</code> the least.</p>
 </div>

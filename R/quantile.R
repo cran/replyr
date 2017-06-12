@@ -32,7 +32,7 @@ qsearch <- function(f,fLeft,fRight,ui) {
   }
 }
 
-#' Compute quantiles on remote column (NA's filtered out).
+#' Compute quantiles on remote column (NA's filtered out) using binary search.
 #'
 #' NA's filtered out and does not break ties the same as stats::quantile.
 #'
@@ -70,16 +70,7 @@ replyr_quantile <- function(x,cname,
   # filter out NA
   x %>% dplyr::filter(!is.na(x)) -> x
   nrows <- replyr_nrow(x)
-  # targets <- pmin(pmax(1,round(probs*nrows)),nrows)
-  # # if we had cumsum() could finish with:
-  # # add row numbers
-  # x %>% dplyr::mutate(const=1) %>% dplyr::arrange(x) %>% dplyr::mutate(s=cumsum(const)) %>%
-  #   replyr_filter('s',targets) %>% as.data.frame() -> x
-  # x <- x[order(x$s),]
-  # x$x
-  # # But sqllite doesn't have such window functions (or row_number())
-  # # so we need one more idea.
-  # For now binary search for a given target.
+  # Binary search for a given target.
   x %>% dplyr::summarise(xmax=max(x),xmin=min(x)) %>%
     dplyr::collect() %>% as.data.frame() %>% as.numeric() -> lims
   f <- function(v) {
@@ -100,7 +91,7 @@ replyr_quantile <- function(x,cname,
   }
   fLeft <- f(min(lims))
   fRight <- f(max(lims))
-  # could do more precise polishin by adpating below to polishQ
+  # could do more precise polishing by adpating below to polishQ
   #marks <- dplyr::bind_rows(lapply(probs*nrows,function(ti) qsearch(f,fLeft,fRight,ti)))
   r <- vapply(probs*nrows,
               function(ti) {

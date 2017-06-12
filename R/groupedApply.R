@@ -2,7 +2,7 @@
 # Contributed by John Mount jmount@win-vector.com , ownership assigned to Win-Vector LLC.
 # Win-Vector LLC currently distributes this code without intellectual property indemnification, warranty, claim of fitness of purpose, or any other guarantee under a GPL3 license.
 
-#' @importFrom dplyr collect copy_to
+#' @importFrom dplyr collect
 NULL
 
 
@@ -101,6 +101,9 @@ gapply <- function(df,gcolumn,f,
     return(df)
   }
   if(partitionMethod=='split') {
+    if(!replyr_is_local_data(df)) {
+      stop("replyr::gapply(partitionMethod='split') can only be used on local data frames")
+    }
     # only works on local data frames
     if(!is.null(maxgroups)) {
       df %>% replyr_uniqueValues(gcolumn) %>% replyr_nrow() -> ngroups
@@ -197,7 +200,10 @@ gapply <- function(df,gcolumn,f,
 #' d <- data.frame(group=c(1,1,2,2,2),
 #'                 order=c(.1,.2,.3,.4,.5),
 #'                 values=c(10,20,2,4,8))
-#' d %>% replyr_split('group')
+#' d %>%
+#'   replyr_split('group', partitionMethod='extract') %>%
+#'   lapply(function(di) data.frame(as.list(colMeans(di)))) %>%
+#'   replyr_bind_rows()
 #'
 #' @export
 replyr_split <- function(df,gcolumn,

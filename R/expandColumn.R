@@ -31,7 +31,7 @@ expandItem <- function(vi, rowidDest, rowId, valDest, idxDest) {
 
 #' Expand a column of vectors into one row per value of each vector.
 #'
-#' Similar to \code{tidyr::unnest} but explicit allows ragged input, lands rowids and value ids, and can work on remote data sources. Fairly expensive per-row operation, not suitable for big data.
+#' Similar to \code{tidyr::unnest} but lands rowids and value ids, and can work on remote data sources. Fairly expensive per-row operation, not suitable for big data.
 #'
 #' @param data data.frame to work with.
 #' @param colName character name of column to expand.
@@ -110,16 +110,7 @@ expandColumn <- function(data, colName,
     } else {
       rowidSource <- rowidDest
     }
-    CDATAROWIDCOL <- NULL # declare not an unbound ref
-    wrapr::let(
-      c(CDATAROWIDCOL = rowidSource),
-      # can't add in a vector see issue
-      # https://github.com/tidyverse/dplyr/issues/2723
-      data <- data %>%
-        dplyr::mutate(CDATAROWIDCOL = 1) %>%
-        dplyr::mutate(CDATAROWIDCOL = cumsum(CDATAROWIDCOL)) %>%
-        dplyr::compute(name=tempNameGenerator())
-    )
+    data <- replyr_add_ids(data, rowidSource)
   }
   CDATAKEYCOLUMN <- NULL # declare not an unbound ref
   wrapr::let(
@@ -143,9 +134,13 @@ expandColumn <- function(data, colName,
                                           valDest= colName,
                                           idxDest= idxDest)
                          di <- dplyr::select(di, one_of(copyCols))
+                         if((!replyr_is_local_data(di)) && (replyr_is_local_data(vx))) {
+                           cn <- replyr_get_src(di)
+                           vx <- replyr_copy_to(cn, vx, tempNameGenerator(),
+                                                temporary = TRUE)
+                         }
                          dplyr::inner_join(di, vx,
-                                           by= rowidSource,
-                                           copy= TRUE)
+                                           by= rowidSource)
                        }
                      )
                    }

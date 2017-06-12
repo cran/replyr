@@ -9,7 +9,7 @@
 #' @param ... not used, force later arguments to bind by name
 #' @param fills list default values to fill in columns
 #' @param newRowColumn character if not null name to use for new row indicator
-#' @param copy logical sets copy during dplyr::anti_join
+#' @param copy logical if TRUE copy support to data's source
 #' @param tempNameGenerator temp name generator produced by replyr::makeTempNameGenerator, used to record dplyr::compute() effects.
 #' @return augmented data
 #'
@@ -51,8 +51,7 @@ replyr_coalesce <- function(data, support,
   if(length(list(...))>0) {
     stop("replyr::replyr_coalesce unexpected arugments")
   }
-  sname <- replyr_dataServiceName(data)
-  sname <- replyr_dataServiceName(support)
+  data <- dplyr::ungroup(data)
   dataCols <- colnames(data)
   joinCols <- colnames(support)
   if(length(joinCols)<=0) {
@@ -67,8 +66,13 @@ replyr_coalesce <- function(data, support,
   if(length(intersect(names(fills), joinCols))>0) {
     stop("replyr::replyr_coalesce fill columns must not overlap key columns")
   }
+  if(copy && (!replyr_is_local_data(data)) && (replyr_is_local_data(support))) {
+    cn <- replyr_get_src(data)
+    support <- replyr_copy_to(cn, support, tempNameGenerator(),
+                              temporary = TRUE)
+  }
   replyr_private_name_additions <- dplyr::anti_join(support, data,
-                                                    by=joinCols, copy= copy)
+                                                    by=joinCols)
   if( (replyr_nrow(data)+replyr_nrow(replyr_private_name_additions)) != replyr_nrow(support)) {
     stop("replyr::replyr_coalesce support is not a unique set of keys for data")
   }
@@ -83,28 +87,15 @@ replyr_coalesce <- function(data, support,
   for(ci in dataCols) {
     if(!(ci %in% joinCols)) {
       if(ci %in% names(fills)) {
-        replyr_private_name_vi <- fills[[ci]]
-        # PostgresSQL and Spark1.6.2 don't like blank character values
-        # hope dplyr lazyeval carries the cast over to the database
-        # And MySQL can't accept the SQL dplyr emits with character cast
-        sname <- replyr_dataServiceName(replyr_private_name_additions)
-        useCharCast <- is.character(replyr_private_name_vi) && (!("src_mysql" %in% sname))
-        if(useCharCast) {
-          let(list(COLI=ci),
-              replyr_private_name_additions <- dplyr::mutate(replyr_private_name_additions,
-                                                             COLI=as.character(replyr_private_name_vi))
-          )
-          } else {
-            let(list(COLI=ci),
-                replyr_private_name_additions <- dplyr::mutate(replyr_private_name_additions,
-                                                               COLI=replyr_private_name_vi)
-            )
-          }
+        replyr_private_name_additions <-
+          addConstantColumn(replyr_private_name_additions,
+                            ci, fills[[ci]],
+                            tempNameGenerator=tempNameGenerator)
       } else {
-        let(list(COLI=ci),
-            replyr_private_name_additions <- dplyr::mutate(replyr_private_name_additions,
-                                                           COLI=NA)
-        )
+        replyr_private_name_additions <-
+          addConstantColumn(replyr_private_name_additions,
+                            ci, NA,
+                            tempNameGenerator=tempNameGenerator)
       }
       # force calculation as chaning of replyr_private_name_vi was chaning previously assigned columns!
       # needed to work around this: https://github.com/WinVector/replyr/blob/master/issues/TrailingRefIssue.md

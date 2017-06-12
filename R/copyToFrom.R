@@ -6,15 +6,6 @@
 NULL
 
 
-# get the db handle from a dplyr src
-# Spark2 handles are DBIConnection s
-# SQLite are not
-dplyr_src_to_db_handle <- function(dplyr_src) {
-  if("DBIConnection" %in% class(dplyr_src)) {
-    return(dplyr_src)
-  }
-  return(dplyr_src$con)
-}
 
 #' Drop a table from a source
 #'
@@ -28,9 +19,9 @@ dplyr_src_to_db_handle <- function(dplyr_src) {
 #'   my_db <- dplyr::src_sqlite(":memory:", create = TRUE)
 #'   d <- replyr_copy_to(my_db, data.frame(x=c(1,2)), 'd')
 #'   print(d)
-#'   dplyr::db_list_tables(my_db$con)
+#'   replyr_list_tables(my_db)
 #'   replyr_drop_table_name(my_db, 'd')
-#'   dplyr::db_list_tables(my_db$con)
+#'   replyr_list_tables(my_db)
 #' }
 #'
 #' @export
@@ -40,28 +31,30 @@ replyr_drop_table_name <- function(dest, name) {
     stop('replyr::replyr_drop_table_name name must be a single non-empty string')
   }
   force(dest)
-  if("NULL" %in% class(dest)) {
+  if(is.null(dest)) {
     # special "no destination" case
     return(FALSE)
   }
   if('tbl' %in% class(dest)) {
     # dest was actually another data object, get its source
     dest <- dest$src
-    if("NULL" %in% class(dest)) {
+    if(is.null(dest)) {
       stop("replyr::replyr_drop_table_name unexpected dest")
     }
   }
   # MySQL doesn't seem to always obey overwrite=TRUE
   # not filing this as MySQL isn't a preferred back end.
   found = FALSE
-  tryCatch({
-    cn <- dplyr_src_to_db_handle(dest)
-    if(!("NULL" %in% class(cn))) {
-      if(name %in% dplyr::db_list_tables(cn)) {
-        found = TRUE
-        dplyr::db_drop_table(cn, name)
+  tryCatch(
+    {
+      cn <- dplyr_src_to_db_handle(dest)
+      if(!is.null(cn)) {
+        if(dplyr::db_has_table(cn, name)) {
+          found = TRUE
+          dplyr::db_drop_table(cn, name)
+        }
       }
-    }},
+    },
     error=function(x) { warning(x); NULL }
   )
   found
@@ -75,6 +68,10 @@ replyr_drop_table_name <- function(dest, name) {
 #' @param name name for new remote table
 #' @param ... force later values to be bound by name
 #' @param rowNumberColumn if not null name to add row numbers to
+#' @param temporary logical, if TRUE try to create a temporary table
+#' @param overwrite logical, if TRUE try to overwrite
+#' @param maxrow max rows to allow in a remote to remote copy.
+#' @param forceDelete logical, if TRUE try to delete table.
 #' @return remote handle
 #'
 #' @examples
@@ -87,40 +84,51 @@ replyr_drop_table_name <- function(dest, name) {
 #' }
 #'
 #' @export
-replyr_copy_to <- function(dest, df, name = deparse(substitute(df)),
+replyr_copy_to <- function(dest,
+                           df, name = deparse(substitute(df)),
                            ...,
-                           rowNumberColumn=NULL) {
+                           rowNumberColumn= NULL,
+                           temporary= FALSE,
+                           overwrite= TRUE,
+                           maxrow= 1000000,
+                           forceDelete= FALSE) {
   # try to force any errors early, and try to fail prior to side-effects
   if(length(list(...))>0) {
     stop('replyr::replyr_copy_to unexpected arguments')
   }
   force(dest)
-  if("NULL" %in% class(dest)) {
+  force(df)
+  force(name)
+  if(!replyr_is_local_data(df)) {
+    warning("replyr::replyr_copy_to called on non-local table")
+    df <- replyr_copy_from(df, maxrow = maxrow)
+  }
+  if(is.null(dest)) {
     # special "no destination" case
     return(df)
+  }
+  if(is.null(df)) {
+    stop("NULL df to replyr::replyr_copy_to")
   }
   if('tbl' %in% class(dest)) {
     # dest was actually another data object, get its source
     dest <- dest$src
-    if("NULL" %in% class(dest)) {
+    if(is.null(dest)) {
       stop("replyr::replyr_copy_to unexpected dest")
     }
-  }
-  force(df)
-  force(name)
-  if("NULL" %in% class(df)) {
-    stop("NULL df to replyr::replyr_copy_to")
   }
   if((!is.character(name))||(length(name)!=1)||(nchar(name)<1)) {
     stop('replyr::replyr_copy_to name must be a single non-empty string')
   }
-  replyr_drop_table_name(dest, name)
+  if(forceDelete) {
+    replyr_drop_table_name(dest, name)
+  }
   if(!is.null(rowNumberColumn)) {
     df[[rowNumberColumn]] <- seq_len(replyr_nrow(df))
   }
   dplyr::copy_to(dest, df, name,
-                 temporary=FALSE,
-                 overwrite=TRUE)
+                 temporary=temporary,
+                 overwrite=overwrite)
 }
 
 #' Bring remote data back as a local data frame tbl.
@@ -140,7 +148,7 @@ replyr_copy_to <- function(dest, df, name = deparse(substitute(df)),
 #' }
 #'
 #' @export
-replyr_copy_from <- function(d,maxrow=1000000) {
+replyr_copy_from <- function(d, maxrow= 1000000) {
   if(!is.null(maxrow)) {
     n <- replyr_nrow(d)
     if(n>maxrow) {
