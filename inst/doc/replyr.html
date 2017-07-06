@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2017-06-12" />
+<meta name="date" content="2017-07-05" />
 
 <title>replyr</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">replyr</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2017-06-12</em></h4>
+<h4 class="date"><em>2017-07-05</em></h4>
 
 
 
@@ -267,8 +267,8 @@ replyr::<span class="kw">replyr_summary</span>(dRemote)
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">'dplyr'</span>)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">values &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">2</span>)
 dRemote %&gt;%<span class="st"> </span>replyr::<span class="kw">replyr_filter</span>(<span class="st">'x'</span>, values)
- <span class="co">#  # Source:   table&lt;replyr_filter_NQOAixYyYOo6q8ycOIQQ_0000000001&gt; [?? x 3]</span>
- <span class="co">#  # Database: sqlite 3.11.1 [:memory:]</span>
+ <span class="co">#  # Source:   table&lt;replyr_filter_O06d7Qk0OIv1oNcuc7FD_0000000001&gt; [?? x 3]</span>
+ <span class="co">#  # Database: sqlite 3.19.3 [:memory:]</span>
  <span class="co">#        x     y     z</span>
  <span class="co">#    &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;</span>
  <span class="co">#  1     2     5     a</span>
@@ -310,9 +310,10 @@ dRemote %&gt;%<span class="st"> </span>replyr::<span class="kw">replyr_filter</s
 <h2>Clean up</h2>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>())
 <span class="kw">gc</span>()
- <span class="co">#            used (Mb) gc trigger  (Mb) max used  (Mb)</span>
- <span class="co">#  Ncells  956565 51.1    1770749  94.6  1442291  77.1</span>
- <span class="co">#  Vcells 9951065 76.0   26948296 205.6 25950476 198.0</span></code></pre></div>
+ <span class="co">#  Auto-disconnecting SQLiteConnection</span>
+ <span class="co">#             used (Mb) gc trigger  (Mb) max used  (Mb)</span>
+ <span class="co">#  Ncells  1189547 63.6    2164898 115.7  1770749  94.6</span>
+ <span class="co">#  Vcells 10245611 78.2   26950344 205.7 25952183 198.0</span></code></pre></div>
 </div>
 
 

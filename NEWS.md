@@ -1,4 +1,10 @@
 
+'replyr' 0.4.2 2017-07-05
+
+ * fix spelling of tableDescription()
+ * add diagrams to join controller.
+ * prepare for sparklyr rbind().
+
 'replyr' 0.4.0 2017-06-12
 
  * Introduce executeLeftJoinPlan join controller.

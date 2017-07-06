@@ -4,24 +4,31 @@
 \alias{buildJoinPlan}
 \title{Build a join plan}
 \usage{
-buildJoinPlan(tDesc)
+buildJoinPlan(tDesc, ..., check = TRUE)
 }
 \arguments{
-\item{tDesc}{description of tables from \code{\link{tableDesription}} (and likely altered by user). Note: no column names must intersect with names of the form \code{table_CLEANEDTABNAME_present}.}
+\item{tDesc}{description of tables from \code{\link{tableDescription}} (and likely altered by user). Note: no column names must intersect with names of the form \code{table_CLEANEDTABNAME_present}.}
+
+\item{...}{force later arguments to bind by name.}
+
+\item{check}{logical, if TRUE check the join plan for consistnecy.}
 }
 \value{
 detailed column join plan (appropriate for editing)
 }
 \description{
-Build a join plan
+Please see \code{vignette('DependencySorting', package = 'replyr')} and \code{vignette('joinController', package= 'replyr')} for more details.
 }
 \examples{
 
 d <- data.frame(id=1:3, weight= c(200, 140, 98))
-tDesc <- rbind(tableDesription('d1', d),
-               tableDesription('d2', d))
+tDesc <- rbind(tableDescription('d1', d),
+               tableDescription('d2', d))
 tDesc$keys[[1]] <- list(PrimaryKey= 'id')
 tDesc$keys[[2]] <- list(PrimaryKey= 'id')
 buildJoinPlan(tDesc)
 
+}
+\seealso{
+\code{\link{tableDescription}}, \code{\link{inspectDescrAndJoinPlan}}, \code{\link{makeJoinDiagramSpec}}, \code{\link{executeLeftJoinPlan}}
 }

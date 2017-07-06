@@ -1,5 +1,93 @@
 
 
+getConcreteTableName <- function(handle) {
+  # TODO: get a safe way to get the concrete name
+  #  https://github.com/tidyverse/dplyr/issues/2824
+  concreteName <- as.character(handle$ops$x)
+}
+
+example_employeeAndDate <- function(my_db) {
+  . <- NULL # Declare not an unbound varaible
+  # note: employeeanddate is likely built as a cross-product
+  #       join of an employee table and set of dates of interest
+  #       before getting to the join controller step.  We call
+  #       such a table "row control" or "experimental design."
+  keymap <- list()
+  DBI::dbExecute(my_db$con, "
+  CREATE TABLE employeeanddate (
+                 id TEXT,
+                 date INTEGER
+  );
+                 ")
+  keymap[['employeeanddate']] = c()
+  data.frame(id= c('i4', 'i4'),
+             date = c(20140501, 20140601)) %>%
+    DBI::dbWriteTable(my_db$con, 'employeeanddate', value=., append=TRUE)
+  DBI::dbExecute(my_db$con, "
+                 CREATE TABLE orgtable (
+                 eid TEXT,
+                 date INTEGER,
+                 dept TEXT,
+                 location TEXT,
+                 PRIMARY KEY (eid, date)
+                 );
+                 ")
+  keymap[['orgtable']] = c('eid', 'date')
+  data.frame(eid= c('i4', 'i4'),
+             date = c(20140501, 20140601),
+             dept = c('IT', 'SL'),
+             location = c('CA', 'TX')) %>%
+    DBI::dbWriteTable(my_db$con, 'orgtable', value=., append=TRUE)
+  DBI::dbExecute(my_db$con, "
+                 CREATE TABLE revenue (
+                 date INTEGER,
+                 dept TEXT,
+                 rev INTEGER,
+                 PRIMARY KEY (date, dept)
+                 );
+                 ")
+  keymap[['revenue']] = c('dept', 'date')
+  data.frame(date = c(20140501, 20140601),
+             dept = c('SL', 'SL'),
+             rev = c(1000, 2000)) %>%
+    DBI::dbWriteTable(my_db$con, 'revenue', value=., append=TRUE)
+  DBI::dbExecute(my_db$con, "
+                 CREATE TABLE activity (
+                 eid TEXT,
+                 date INTEGER,
+                 hours INTEGER,
+                 location TEXT,
+                 PRIMARY KEY (eid, date)
+                 );
+                 ")
+  keymap[['activity']] = c('eid', 'date')
+  data.frame(eid= c('i4', 'i4'),
+             date = c(20140501, 20140601),
+             hours = c(50, 3),
+             location = c('office', 'client')) %>%
+    DBI::dbWriteTable(my_db$con, 'activity', value=., append=TRUE)
+  tableNames <- c('employeeanddate',
+                  'revenue',
+                  'activity',
+                  'orgtable')
+  key_inspector_by_name <- function(handle) {
+    concreteName <- getConcreteTableName(handle)
+    keys <- keymap[[concreteName]]
+    names(keys) <- keys
+    keys
+  }
+  tDesc <- tableNames %>%
+    lapply(
+      function(ni) {
+        replyr::tableDescription(ni,
+                                 dplyr::tbl(my_db, ni),
+                                 keyInspector = key_inspector_by_name)
+      }) %>%
+    dplyr::bind_rows()
+  tDesc
+}
+
+
 uniqueInOrder <- function(names) {
   name <- NULL # declare not unbound reference
   rowid <- NULL # declare not unbound reference
@@ -25,31 +113,141 @@ makeTableIndMap <- function(tableNameSeq) {
 }
 
 
+#' Return all columns as guess at preferred primary keys.
+#'
+#' @seealso \code{tableDescription}
+#'
+#' @param handle data handle
+#' @return map of keys to keys
+#'
+#' @examples
+#'
+#' d <- data.frame(x=1:3, y=NA)
+#' key_inspector_all_cols(d)
+#'
+#' @export
+#'
+key_inspector_all_cols <- function(handle) {
+  cols <- colnames(handle)
+  keys <- cols
+  names(keys) <- keys
+  keys
+}
+
+
+#' Return all primary key columns as guess at preferred primary keys for a SQLite handle.
+#'
+#' @seealso \code{tableDescription}
+#'
+#' @param handle data handle
+#' @return map of keys to keys
+#'
+#'
+#' @export
+#'
+key_inspector_sqlite <- function(handle) {
+  src <- replyr_get_src(handle)
+  if(is.null(src) || is.character(src)) {
+    stop("replyr::key_inspector_sqlite: not a SQLite source")
+  }
+  con <- dplyr_src_to_db_handle(src)
+  if(is.null(con) || is.character(con)) {
+    stop("replyr::key_inspector_sqlite: could not get DB handle")
+  }
+  concreteName <- getConcreteTableName(handle)
+  if(is.null(concreteName) || (!is.character(concreteName))) {
+    stop("replyr::key_inspector_sqlite: could not get concrete table name")
+  }
+  tabInfo <- DBI::dbGetQuery(con,
+                             paste0("pragma table_info(",
+                                    concreteName,
+                                    ")"))
+  keys <- NULL
+  if((!is.null(tabInfo))&&(nrow(tabInfo)>0)) {
+    keys <- tabInfo$name[tabInfo$pk>0]
+    names(keys) <- keys
+  }
+  keys
+}
+
+
+#' Return all primary key columns as guess at preferred primary keys for a PostgreSQL handle.
+#'
+#' @seealso \code{tableDescription}
+#'
+#' @param handle data handle
+#' @return map of keys to keys
+#'
+#'
+#' @export
+#'
+key_inspector_postgresql <- function(handle) {
+  src <- replyr_get_src(handle)
+  if(is.null(src) || is.character(src)) {
+    stop("replyr::key_inspector_postgresql: not a PostgreSQL source")
+  }
+  con <- dplyr_src_to_db_handle(src)
+  if(is.null(con) || is.character(con)) {
+    stop("replyr::key_inspector_postgresql: could not get DB handle")
+  }
+  concreteName <- getConcreteTableName(handle)
+  if(is.null(concreteName) || (!is.character(concreteName))) {
+    stop("replyr::key_inspector_postgresql: could not get concrete table name")
+  }
+  # from https://wiki.postgresql.org/wiki/Retrieve_primary_key_columns
+  q <- paste0(
+    "
+    SELECT a.attname, format_type(a.atttypid, a.atttypmod) AS data_type
+    FROM   pg_index i
+    JOIN   pg_attribute a ON a.attrelid = i.indrelid
+    AND a.attnum = ANY(i.indkey)
+    WHERE  i.indrelid = '", concreteName, "'::regclass
+    AND    i.indisprimary;
+    "
+  )
+  tabInfo <- DBI::dbGetQuery(con, q)
+  keys <- NULL
+  if((!is.null(tabInfo))&&(nrow(tabInfo)>0)) {
+    keys <- tabInfo$attname
+    names(keys) <- keys
+  }
+  keys
+}
+
 #' Build a nice description of a table.
 #'
 #' Please see \url{http://www.win-vector.com/blog/2017/05/managing-spark-data-handles-in-r/} for details.
 #' Note: one usually needs to alter the keys column which is just populated with all columns.
 #'
+#' Please see \code{vignette('DependencySorting', package = 'replyr')} and \code{vignette('joinController', package= 'replyr')} for more details.
+#'
+#' @seealso \code{\link{buildJoinPlan}}, \code{\link{keysAreUnique}}, \code{\link{makeJoinDiagramSpec}}, \code{\link{executeLeftJoinPlan}}
 #'
 #' @param tableName name of table to add to join plan.
 #' @param handle table or table handle to add to join plan (can already be in the plan).
+#' @param ... force later arguments to bind by name.
+#' @param keyInspector function that determines prefered primary key set for table.
 #' @return table describing the data.
 #'
 #' @examples
 #'
 #' d <- data.frame(x=1:3, y=NA)
-#' tableDesription('d', d)
+#' tableDescription('d', d)
 #'
 #'
 #' @export
 #'
-tableDesription <- function(tableName,
-                            handle) {
+tableDescription <- function(tableName,
+                            handle,
+                            ...,
+                            keyInspector= key_inspector_all_cols) {
   if(length(nchar(tableName))<=0) {
-    stop("replyr::tableDesription empty name")
+    stop("replyr::tableDescription empty name")
   }
   sample <- dplyr::collect(head(handle))
-  cols <- colnames(sample)
+  cols <- colnames(handle)
+  # may not get classes on empty tables
+  # https://github.com/tidyverse/dplyr/issues/2913
   classes <- vapply(cols,
                     function(si) {
                       paste(class(sample[[si]]),
@@ -62,11 +260,10 @@ tableDesription <- function(tableName,
   if(length(source)>1) {
     source <- paste(source, collapse = ', ')
   }
-  keys <- cols
-  names(keys) <- cols
+  keys <- keyInspector(handle)
   tableIndColNames <- makeTableIndMap(tableName)
   if(length(intersect(tableIndColNames, cols))>0) {
-    warning("replyr::tableDesription table_CLEANEDTABNAME_present column may cause problems (please consider renaming before these steps)")
+    warning("replyr::tableDescription table_CLEANEDTABNAME_present column may cause problems (please consider renaming before these steps)")
   }
   dplyr::data_frame(tableName= tableName,
                     handle= list(handle),
@@ -74,7 +271,8 @@ tableDesription <- function(tableName,
                     keys= list(keys),
                     colClass= list(classes),
                     sourceClass= source,
-                    isEmpty= nrow(sample)<=0)
+                    isEmpty= nrow(sample)<=0,
+                    indicatorColumn= tableIndColNames[[1]])
 }
 
 
@@ -82,14 +280,16 @@ tableDesription <- function(tableName,
 #'
 #' Can be an expensive operation.
 #'
-#' @param tDesc description of tables, from \code{\link{tableDesription}} (and likely altered by user).
+#' @seealso \code{\link{tableDescription}}
+#'
+#' @param tDesc description of tables, from \code{\link{tableDescription}} (and likely altered by user).
 #' @return logical TRUE if keys are unique
 #'
 #' @examples
 #'
 #' d <- data.frame(x=c(1,1,2,2,3,3), y=c(1,2,1,2,1,2))
-#' tDesc1 <- tableDesription('d1', d)
-#' tDesc2 <- tableDesription('d2', d)
+#' tDesc1 <- tableDescription('d1', d)
+#' tDesc2 <- tableDescription('d2', d)
 #' tDesc <- rbind(tDesc1, tDesc2)
 #' tDesc$keys[[2]] <- c(x='x')
 #' keysAreUnique(tDesc)
@@ -129,7 +329,7 @@ inspectAndLimitJoinPlan <- function(columnJoinPlan, checkColClasses) {
     }
     if(any(nchar(columnJoinPlan[[ci]])<=0) ||
        any(is.na(columnJoinPlan))) {
-      return(paste("empty or NA', ci, ' colum in columnJoinPlan"))
+      return(paste("empty or NA', ci, ' column in columnJoinPlan"))
     }
   }
   for(ci in c('isKey','want')) {
@@ -159,7 +359,7 @@ inspectAndLimitJoinPlan <- function(columnJoinPlan, checkColClasses) {
       return(paste("columnJoinPlan sourceColumns not unique for table",
                    ci))
     }
-    if(sum(ci$isKey)<=0) {
+    if((sum(ci$isKey)<=0) && (tabnam!=tabs[[1]])) {
       return("no keys for table", tabnam)
     }
   }
@@ -173,41 +373,376 @@ inspectAndLimitJoinPlan <- function(columnJoinPlan, checkColClasses) {
   }
   # limit down to things we are using
   columnJoinPlan <- columnJoinPlan[columnJoinPlan$want, , drop=FALSE]
-  # check a few desired invarients of the plan
-  prevResColClasses <- list()
+  # check a few desired invariants of the plan
+  columnJoinPlan$joinSource <- ''
+  prevResultColInfo <- list()
   for(tabnam in tabs) {
     ci <- columnJoinPlan[columnJoinPlan$tableName==tabnam, , drop=FALSE]
     cMap <- ci$sourceClass
     names(cMap) <- ci$resultColumn
     keyCols <- ci$resultColumn[ci$isKey]
+    if(tabnam!=tabs[[1]]) {
+      if(length(keyCols)<=0) {
+        return(paste("table", tabnam, "declares no keys"))
+      }
+    }
     resCols <- ci$resultColumn[ci$want]
-    if(length(prevResColClasses)>0) {
-      missedKeys <- setdiff(keyCols, names(prevResColClasses))
+    if(length(prevResultColInfo)>0) {
+      missedKeys <- setdiff(keyCols, names(prevResultColInfo))
       if(length(missedKeys)>0) {
         return(paste("key col(s) (",
                      paste(missedKeys, collapse = ', '),
                      ") not contained in result cols of previous table(s) for table:", tabnam))
       }
+      for(ki in keyCols) {
+        prevInfo <- prevResultColInfo[[ki]]
+        #print(paste(prevInfo$tabableName, ki, '->', tabnam, ki))
+        columnJoinPlan$joinSource[(columnJoinPlan$tableName==tabnam) &
+                         (columnJoinPlan$resultColumn==ki)] <- prevInfo$tabableName
+      }
     }
     for(ki in resCols) {
-      prevClass <- prevResColClasses[[ki]]
+      prevInfo <- prevResultColInfo[[ki]]
       curClass <- cMap[[ki]]
-      if((checkColClasses)&&(!is.null(prevClass))&&
-         (curClass!=prevClass)) {
+      if((checkColClasses)&&(!is.null(prevInfo))&&
+         (curClass!=prevInfo$clsname)) {
         return(paste("column",ki,"changed from",
-                     prevClass,"to",curClass,"at table",
+                     prevInfo$clsname,"to",curClass,"at table",
                      tabnam))
 
       }
-      prevResColClasses[[ki]] <- curClass
+      if(is.null(prevInfo)) {
+        prevResultColInfo[[ki]] <- list(clsname= curClass,
+                                        tabableName= tabnam)
+      }
     }
   }
   columnJoinPlan
 }
 
+
+#' Topologically sort join plan do values are available before uses.
+#'
+#' Depends on \code{igraph} package.
+#' Please see \code{vignette('DependencySorting', package = 'replyr')} and \code{vignette('joinController', package= 'replyr')} for more details.
+#'
+#' @param columnJoinPlan join plan
+#' @param leftTableName which table is left
+#' @param ... force later arguments to bind by name
+#' @return list with dependencyGraph and sorted columnJoinPlan
+#'
+#' @examples
+#'
+#'
+#' # note: employeeanddate is likely built as a cross-product
+#' #       join of an employee table and set of dates of interest
+#' #       before getting to the join controller step.  We call
+#' #       such a table "row control" or "experimental design."
+#'
+#'
+#' my_db <- dplyr::src_sqlite(":memory:",
+#'                            create = TRUE)
+#' tDesc <- replyr:::example_employeeAndDate(my_db)
+#' columnJoinPlan <- buildJoinPlan(tDesc, check= FALSE)
+#' # unify keys
+#' columnJoinPlan$resultColumn[columnJoinPlan$resultColumn=='id'] <- 'eid'
+#' # look at plan defects
+#' print(paste('problems:',
+#'             inspectDescrAndJoinPlan(tDesc, columnJoinPlan)))
+#' # fix plan
+#' if(requireNamespace('igraph', quietly = TRUE)) {
+#'    sorted <- topoSortTables(columnJoinPlan, 'employeeanddate')
+#'    print(paste('problems:',
+#'                inspectDescrAndJoinPlan(tDesc, sorted$columnJoinPlan)))
+#'    # plot(sorted$dependencyGraph)
+#' }
+#' DBI::dbDisconnect(my_db$con)
+#' my_db <- NULL
+#'
+#' @export
+#'
+topoSortTables <- function(columnJoinPlan, leftTableName,
+                           ...) {
+  if(!requireNamespace('igraph', quietly = TRUE)) {
+    warning("topoSortTables: requres igraph to sort tables")
+    return(list(columnJoinPlan= columnJoinPlan,
+                dependencyGraph= NULL,
+                tableOrder= NULL))
+  }
+  g <- igraph::make_empty_graph()
+  vnams <- sort(unique(columnJoinPlan$tableName))
+  for(vi in vnams) {
+    g <- g + igraph::vertex(vi)
+  }
+  # left table is special, prior to all
+  for(vi in setdiff(vnams, leftTableName)) {
+    g <- g + igraph::edge(leftTableName, vi)
+  }
+  # add in any other order conditions
+  n <- length(vnams)
+  for(vii in seq_len(n)) {
+    if(vnams[[vii]]!=leftTableName) {
+      ci <- columnJoinPlan[columnJoinPlan$tableName==vnams[[vii]], ,
+                           drop=FALSE]
+      knownI <- ci$resultColumn[!ci$isKey]
+      for(vjj in setdiff(seq_len(n), vii)) {
+        if(vnams[[vjj]]!=leftTableName) {
+          cj <- columnJoinPlan[columnJoinPlan$tableName==vnams[[vjj]], ,
+                               drop=FALSE]
+          keysJ <- cj$resultColumn[cj$isKey]
+          if(length(intersect(knownI, keysJ))>0) {
+            g <- g + igraph::edge(vnams[[vii]], vnams[[vjj]])
+          }
+        }
+      }
+    }
+  }
+  tableOrder <- vnams[as.numeric(igraph::topo_sort(g))]
+  tabs <- split(columnJoinPlan, columnJoinPlan$tableName)
+  tabs <- tabs[tableOrder]
+  list(columnJoinPlan= dplyr::bind_rows(tabs),
+       dependencyGraph= g,
+       tableOrder= tableOrder)
+}
+
+#' Build a drawable specification of the join diagram
+#'
+#' Please see \code{vignette('DependencySorting', package = 'replyr')} and \code{vignette('joinController', package= 'replyr')} for more details.
+#'
+#' @seealso \code{\link{tableDescription}}, \code{\link{buildJoinPlan}}, \code{\link{renderJoinDiagram}}, \code{\link{executeLeftJoinPlan}}
+#'
+#' @param columnJoinPlan join plan
+#' @param ... force later arguments to bind by name
+#' @param groupByKeys logical if true build key-equivalent sub-graphs
+#' @param graphOpts options for graphViz
+#' @return grViz diagram spec
+#'
+#' @examples
+#'
+#'
+#' # note: employeeanddate is likely built as a cross-product
+#' #       join of an employee table and set of dates of interest
+#' #       before getting to the join controller step.  We call
+#' #       such a table "row control" or "experimental design."
+#'
+#' my_db <- dplyr::src_sqlite(":memory:",
+#'                            create = TRUE)
+#' tDesc <- replyr:::example_employeeAndDate(my_db)
+#' # fix order by hand, please see replyr::topoSortTables for
+#' # how to automate this.
+#' ord <- match(c('employeeanddate', 'orgtable', 'activity', 'revenue'),
+#'              tDesc$tableName)
+#' tDesc <- tDesc[ord, , drop=FALSE]
+#' columnJoinPlan <- buildJoinPlan(tDesc, check= FALSE)
+#' # unify keys
+#' columnJoinPlan$resultColumn[columnJoinPlan$resultColumn=='id'] <- 'eid'
+#' # look at plan defects
+#' print(paste('problems:',
+#'             inspectDescrAndJoinPlan(tDesc, columnJoinPlan)))
+#' diagramSpec <- makeJoinDiagramSpec(columnJoinPlan)
+#' # to render as JavaScript:
+#' #   DiagrammeR::grViz(diagramSpec)
+#' # or as a PNG:
+#' #   renderJoinDiagram(diagramSpec)
+#' #
+#' DBI::dbDisconnect(my_db$con)
+#' my_db <- NULL
+#'
+#' @export
+#'
+#'
+makeJoinDiagramSpec <- function(columnJoinPlan, ...,
+                                groupByKeys= TRUE,
+                                graphOpts= NULL) {
+  columnJoinPlan <- inspectAndLimitJoinPlan(columnJoinPlan, FALSE)
+  if(is.character(columnJoinPlan)) {
+    stop(columnJoinPlan)
+  }
+  if(is.null(graphOpts)) {
+    graphOpts <- paste(" graph [",
+                       "layout = dot, rankdir = LR, overlap = prism,",
+                       "compound = true, nodesep = .5, ranksep = .25]\n",
+                       " edge [decorate = true, arrowhead = dot]\n",
+                       " node [style=filled, fillcolor=lightgrey]\n")
+  }
+  tabs <- uniqueInOrder(columnJoinPlan$tableName)
+  tabIndexes <- seq_len(length(tabs))
+  names(tabIndexes) <- tabs
+  keysToGroups <- list()
+  graph <- paste0("digraph joinplan {\n ", graphOpts, "\n")
+  # pass 1: define nodes and groups of nodes
+  for(idx in seq_len(length(tabs))) {
+    ti <- tabs[[idx]]
+    ci <- columnJoinPlan[columnJoinPlan$tableName==ti, ,
+                         drop=FALSE]
+    keys <- paste('{',
+                  paste(sort(ci$resultColumn[ci$isKey]),
+                  collapse = ', '),
+                  '}')
+    if(nchar(keys)<=0) {
+      keys <- '.' # can't use '' as a list key
+    }
+    keysToGroups[[keys]] <- c(keysToGroups[[keys]], idx)
+    sourceAnnotations <- paste(' (', ci$sourceColumn, ')')
+    ind <- NULL
+    if(idx>1) {
+      ind <- paste('i:', makeTableIndMap(ti)[[1]])
+    }
+    cols <- paste0(ifelse(ci$isKey, 'k: ', 'v: '),
+                  ci$resultColumn,
+                  ifelse(ci$resultColumn==ci$sourceColumn,
+                         '', sourceAnnotations))
+    cols <- paste(c(ind, cols), collapse ='\\l')
+    ndi <- paste0(idx, ': ', ti, '\n\\l', cols)
+    shape = 'tab'
+    if(idx<=1) {
+      shape = 'folder'
+    }
+    graph <- paste0(graph, "\n  ",
+                    'node', idx,
+                    " [ shape = '", shape, "' , label = '", ndi, "\\l']\n"
+                    )
+  }
+  # pass 2: edges
+  columnJoinPlanK <- columnJoinPlan[columnJoinPlan$isKey, ,
+                                    drop=FALSE]
+  for(tii in seq_len(length(tabs))) {
+    ti <- tabs[[tii]]
+    ci <- columnJoinPlanK[columnJoinPlanK$tableName==ti &
+                            nchar(columnJoinPlanK$joinSource)>0, ,
+                          drop=FALSE]
+    sources <- sort(unique(ci$joinSource))
+    for(si in sources) {
+      sii <- tabIndexes[[si]]
+      ki <- paste(ci$resultColumn[ci$joinSource==si],
+                  collapse = '\\l')
+      graph <- paste0(graph, "\n",
+                      " node", sii, " -> ", "node", tii,
+                      " [ label='", ki, "\\l' ]")
+    }
+  }
+  if(groupByKeys) {
+    # assign subgraphs
+    for(gii in seq_len(length(names(keysToGroups)))) {
+      gi <- names(keysToGroups)[[gii]]
+      group <- keysToGroups[[gi]]
+      if(length(group)>0) {
+        group <- paste0('node', group)
+        graph <- paste0(graph, '\n',
+                        'subgraph cluster_', gii, ' {\n',
+                        'style=filled\n',
+                        'color=lightgreen\n',
+                        'label = "',gi,'"\n',
+                        paste(group, collapse=' ; '),
+                        '\n}')
+      }
+    }
+  }
+  graph <- paste0(graph, '\n', '}\n')
+  graph
+}
+
+
+
+
+
+#' Render a diagram spec from \code{\link{makeJoinDiagramSpec}} as a PNG graphics item.
+#'
+#' Requires packages \code{DiagrammeR} properly installed to use.
+#' Please see \code{vignette('DependencySorting', package = 'replyr')} and \code{vignette('joinController', package= 'replyr')} for more details.
+#'
+#' This PNG can be smaller than directly including a grViz rendering in markdown.
+#' Requires all of \code{DiagrammeR}, \code{htmlwidgets}, \code{webshot}, and \code{magick} to be installed with all external dependencies properly installed and configured.
+#'
+#' @seealso \code{\link{tableDescription}}, \code{\link{buildJoinPlan}}, \code{\link{makeJoinDiagramSpec}}, \code{\link{executeLeftJoinPlan}}, \code{\link{convertDiagrameToPNG}}
+#'
+#' @param diagramSpec diagram specification from \code{\link{makeJoinDiagramSpec}}.
+#' @param ... force later arguments to bind by name.
+#' @param pngFileName character, if not null where to write PNG
+#' @param tempDir character, if not null tempDir to create/use
+#' @return DiagrammeR::grViz result as a PNG
+#'
+#'
+#' @export
+#'
+#'
+renderJoinDiagram <- function(diagramSpec,
+                              ...,
+                              pngFileName = NULL,
+                              tempDir = tempdir()) {
+  needs <- c('DiagrammeR', 'htmlwidgets', 'webshot', 'magick' )
+  have <- vapply(needs,
+                 function(pi) {
+                   requireNamespace(pi, quietly = TRUE)
+                 }, logical(1))
+  if(any(!have)) {
+    warning(paste("replyr::renderJoinDiagram needs all of the packages: ",
+                  paste(needs, collapse = ', '),
+                  "installed and does not have:",
+                  paste(needs[!have], collapse = ', ')))
+    return(NULL)
+  }
+  img <- NULL
+  tryCatch(
+    {
+      diagram <- DiagrammeR::grViz(diagramSpec)
+      tempPath <- paste(tempDir, 'joinPlanTemp.html', sep= '/')
+      pngTempFileName <- paste(tempDir, 'joinPlanTemp.png', sep= '/')
+      htmlwidgets::saveWidget(diagram, tempPath, selfcontained = FALSE)
+      webshot::webshot(tempPath, file = pngTempFileName,
+                       cliprect = "viewport")
+      img <- magick::image_read(pngTempFileName)
+      img <- magick::image_trim(img)
+      if(!is.null(pngFileName)) {
+        magick::image_write(img, path = pngFileName, format = "png")
+      }
+      # # intentionally not removing the temp directory, as it could be dangerous
+      # # Command would be:
+      #   unlink(tempDir, recursive = TRUE)
+    },
+    error = function(e) {
+      warning(paste("replyr::renderJoinDiagram caught ",
+                    paste(as.character(e), collapse = ' '),
+                    "likely one of",
+                    paste(needs, collapse = ', '),
+                    "has uninstalled/unconfigured external dependencies"))
+    }
+  )
+  img
+}
+
+
+
+#' Convert a renderJoinDiagram \code{\link{renderJoinDiagram}} result to a PNG graphics item.
+#'
+#' Requires packages \code{DiagrammeR}, \code{htmlwidgets}, \code{webshot}, and \code{magick} properly installed to use.
+#' Please see \code{vignette('DependencySorting', package = 'replyr')} and \code{vignette('joinController', package= 'replyr')} for more details.
+#'
+#' @seealso \code{\link{renderJoinDiagram}}
+#'
+#'
+#' @param diagram DiagrammeR::grViz result (please see replyr::renderJoinDiagram)
+#' @param ... force later arguments to bind by name.
+#' @param pngFileName optional, file path where to save the PNG.
+#' @param tempDir directory to create temporary files in (not deleted by this method).
+#' @return png rendering of diagram
+#'
+#'
+#' @export
+#'
+convertDiagrameToPNG <- function(diagram,
+                              ...,
+                              pngFileName= NULL,
+                              tempDir= tempdir()) {
+
+}
+
 #' check that a join plan is consistent with table descriptions
 #'
-#' @param tDesc description of tables, from \code{\link{tableDesription}} (and likely altered by user).
+#' Please see \code{vignette('DependencySorting', package = 'replyr')} and \code{vignette('joinController', package= 'replyr')} for more details.
+#' @seealso \code{\link{tableDescription}}, \code{\link{buildJoinPlan}}, \code{\link{makeJoinDiagramSpec}}, \code{\link{executeLeftJoinPlan}}
+#'
+#' @param tDesc description of tables, from \code{\link{tableDescription}} (and likely altered by user).
 #' @param columnJoinPlan columns to join, from \code{\link{buildJoinPlan}} (and likely altered by user). Note: no column names must intersect with names of the form \code{table_CLEANEDTABNAME_present}.
 #' @param ... force later arguments to bind by name.
 #' @param checkColClasses logical if true check for exact class name matches
@@ -223,9 +758,9 @@ inspectAndLimitJoinPlan <- function(columnJoinPlan, checkColClasses) {
 #'                  weight= c(130, 110),
 #'                  width= 1)
 #' # get the initial description of table defs
-#' tDesc <- rbind(tableDesription('d1', d1),
-#'                tableDesription('d2', d2))
-#' # declare keys (and give them consitent names)
+#' tDesc <- rbind(tableDescription('d1', d1),
+#'                tableDescription('d2', d2))
+#' # declare keys (and give them consistent names)
 #' tDesc$keys[[1]] <- list(PrimaryKey= 'id')
 #' tDesc$keys[[2]] <- list(PrimaryKey= 'pid')
 #' # build the join plan
@@ -265,7 +800,7 @@ inspectDescrAndJoinPlan <- function(tDesc, columnJoinPlan,
   tabsD <- unique(tDesc$tableName)
   columnJoinPlan <- columnJoinPlan[columnJoinPlan$tableName %in% tabsD, ,
                                    drop=FALSE]
-  # check a few desired invarients of the plan
+  # check a few desired invariants of the plan
   for(i in seq_len(nrow(tDesc))) {
     tnam <- tDesc$tableName[[i]]
     ci <- columnJoinPlan[columnJoinPlan$tableName==tnam, , drop=FALSE]
@@ -284,21 +819,28 @@ inspectDescrAndJoinPlan <- function(tDesc, columnJoinPlan,
 
 #' Build a join plan
 #'
-#' @param tDesc description of tables from \code{\link{tableDesription}} (and likely altered by user). Note: no column names must intersect with names of the form \code{table_CLEANEDTABNAME_present}.
+#' Please see \code{vignette('DependencySorting', package = 'replyr')} and \code{vignette('joinController', package= 'replyr')} for more details.
+#' @seealso \code{\link{tableDescription}}, \code{\link{inspectDescrAndJoinPlan}}, \code{\link{makeJoinDiagramSpec}}, \code{\link{executeLeftJoinPlan}}
+#'
+#' @param tDesc description of tables from \code{\link{tableDescription}} (and likely altered by user). Note: no column names must intersect with names of the form \code{table_CLEANEDTABNAME_present}.
+#' @param ... force later arguments to bind by name.
+#' @param check logical, if TRUE check the join plan for consistnecy.
 #' @return detailed column join plan (appropriate for editing)
 #'
 #' @examples
 #'
 #' d <- data.frame(id=1:3, weight= c(200, 140, 98))
-#' tDesc <- rbind(tableDesription('d1', d),
-#'                tableDesription('d2', d))
+#' tDesc <- rbind(tableDescription('d1', d),
+#'                tableDescription('d2', d))
 #' tDesc$keys[[1]] <- list(PrimaryKey= 'id')
 #' tDesc$keys[[2]] <- list(PrimaryKey= 'id')
 #' buildJoinPlan(tDesc)
 #'
 #' @export
 #'
-buildJoinPlan <- function(tDesc) {
+buildJoinPlan <- function(tDesc,
+                          ...,
+                          check= TRUE) {
   n <- function(...) {} # declare not an unbound ref
   count <- NULL # declare not an unbound ref
   ntab <- nrow(tDesc)
@@ -318,7 +860,7 @@ buildJoinPlan <- function(tDesc) {
       stop(paste("replyr::buildJoinPlan table",
                  tnam, "no columns"))
     }
-    if(length(keys)<=0) {
+    if((length(keys)<=0)&&(i>1)) {
       stop(paste("replyr::buildJoinPlan table",
                  tnam, "no keys"))
     }
@@ -377,11 +919,13 @@ buildJoinPlan <- function(tDesc) {
   nonKeyIndexes <- which(!plans$isKey)
   plans$resultColumn[nonKeyIndexes] <- make.unique( plans$resultColumn[nonKeyIndexes],
                                                     sep= '_')
-  # just in case
-  problem <- inspectDescrAndJoinPlan(tDesc, plans)
-  if(!is.null(problem)) {
-    stop(paste("replyr::buildJoinPlan produced plan issue:",
-               problem))
+  if(check) {
+    # just in case
+    problem <- inspectDescrAndJoinPlan(tDesc, plans)
+    if(!is.null(problem)) {
+      stop(paste("replyr::buildJoinPlan produced plan issue:",
+                    problem))
+    }
   }
   plans
 }
@@ -410,13 +954,19 @@ strMapToString <- function(m) {
 
 #' Execute an ordered sequence of left joins.
 #'
-#' @param tDesc description of tables, from \code{\link{tableDesription}} only used to map table names to data.
+#' Please see \code{vignette('DependencySorting', package = 'replyr')} and \code{vignette('joinController', package= 'replyr')} for more details.
+#' @seealso \code{\link{tableDescription}}, \code{\link{buildJoinPlan}}, \code{\link{inspectDescrAndJoinPlan}}, \code{\link{makeJoinDiagramSpec}}
+#'
+#' TODO: parameterize the implementation provider (right now hard-coded for \code{dplr}, but at least also direct \code{SQL} is a good extension).
+#'
+#' @param tDesc description of tables, either a \code{data.frame} from \code{\link{tableDescription}}, or a list mapping from names to handles/frames.  Only used to map table names to data.
 #' @param columnJoinPlan columns to join, from \code{\link{buildJoinPlan}} (and likely altered by user).  Note: no column names must intersect with names of the form \code{table_CLEANEDTABNAME_present}.
 #' @param ... force later arguments to bind by name.
-#' @param checkColumns logical if TURE confirm column names before starting joins.
+#' @param checkColumns logical if TRUE confirm column names before starting joins.
 #' @param eagerCompute logical if TRUE materialize intermediate results with \code{dplyr::compute}.
 #' @param checkColClasses logical if true check for exact class name matches
 #' @param verbose logical if TRUE print more.
+#' @param dryRun logical if TRUE do not perform joins, only print steps.
 #' @param tempNameGenerator temp name generator produced by replyr::makeTempNameGenerator, used to record dplyr::compute() effects.
 #' @return joined table
 #'
@@ -431,8 +981,8 @@ strMapToString <- function(m) {
 #'                     weight= c(105, 110),
 #'                     width= 1)
 #' # get the initial description of table defs
-#' tDesc <- rbind(tableDesription('meas1', meas1),
-#'                tableDesription('meas2', meas2))
+#' tDesc <- rbind(tableDescription('meas1', meas1),
+#'                tableDescription('meas2', meas2))
 #' # declare keys (and give them consitent names)
 #' tDesc$keys[[1]] <- list(PatientID= 'id')
 #' tDesc$keys[[2]] <- list(PatientID= 'pid')
@@ -449,6 +999,11 @@ strMapToString <- function(m) {
 #' executeLeftJoinPlan(tDesc, columnJoinPlan,
 #'                     checkColClasses= TRUE,
 #'                     verbose= TRUE)
+#' # also good
+#' executeLeftJoinPlan(list('meas1'=meas1, 'meas2'=meas2),
+#'                     columnJoinPlan,
+#'                     checkColClasses= TRUE,
+#'                     verbose= TRUE)
 #'
 #' @export
 #'
@@ -459,6 +1014,7 @@ executeLeftJoinPlan <- function(tDesc, columnJoinPlan,
                                 eagerCompute= TRUE,
                                 checkColClasses= FALSE,
                                 verbose= FALSE,
+                                dryRun= FALSE,
                                 tempNameGenerator= makeTempNameGenerator("executeLeftJoinPlan")) {
   # sanity check (if there is an obvious config problem fail before doing potentially expensive work)
   columnJoinPlan <- inspectAndLimitJoinPlan(columnJoinPlan,
@@ -466,10 +1022,24 @@ executeLeftJoinPlan <- function(tDesc, columnJoinPlan,
   if(is.character(columnJoinPlan)) {
     stop(paste("replyr::executeLeftJoinPlan", columnJoinPlan))
   }
-  if(length(unique(tDesc$tableName))!=length(tDesc$tableName)) {
-    stop("replyr::executeLeftJoinPlan duplicate table names in tDesc")
+  if(dryRun) {
+    verbose = TRUE
   }
-  if(!all(columnJoinPlan$tableName %in% tDesc$tableName)) {
+  tMap <- NULL
+  if('data.frame' %in% class(tDesc)) {
+    if(length(unique(tDesc$tableName))!=length(tDesc$tableName)) {
+      stop("replyr::executeLeftJoinPlan duplicate table names in tDesc")
+    }
+    tMap <- tDesc$handle
+    names(tMap) <- tDesc$tableName
+  } else {
+    # named list
+    tMap <- tDesc
+    if(length(unique(names(tMap)))!=length(names(tMap))) {
+      stop("replyr::executeLeftJoinPlan duplicate table names in tDesc")
+    }
+  }
+  if(!all(columnJoinPlan$tableName %in% names(tMap))) {
     stop("replyr::executeLeftJoinPlan some needed columnJoinPlan table(s) not in tDesc")
   }
   # get the names of tables in columnJoinPlan order
@@ -479,10 +1049,10 @@ executeLeftJoinPlan <- function(tDesc, columnJoinPlan,
                       c(columnJoinPlan$resultColumn, columnJoinPlan$sourceColumn)))>0) {
     stop("executeLeftJoinPlan: column mappings intersect intended table label columns")
   }
-  if(checkColumns) {
+  if(checkColumns && (!dryRun)) {
     for(tabnam in tableNameSeq) {
-      handlei <- tDesc$handle[[which(tDesc$tableName==tabnam)]]
-      newdesc <- tableDesription(tabnam, handlei)
+      handlei <- tMap[[tabnam]]
+      newdesc <- tableDescription(tabnam, handlei)
       if(newdesc$isEmpty[[1]]) {
         warning(paste("replyr::executeLeftJoinPlan table is empty:",
                       tabnam))
@@ -504,30 +1074,45 @@ executeLeftJoinPlan <- function(tDesc, columnJoinPlan,
       missing <- setdiff(needs, tabcols)
       if(length(missing)>0) {
         stop(paste("replyr::executeLeftJoinPlan table",
-                   tabnam, "misisng needed columns",
+                   tabnam, "missing needed columns",
                    paste(missing, collapse = ', ')))
       }
     }
   }
   # start joining
+  dataSource <- NULL
   res <- NULL
+  first <- TRUE
   for(tabnam in tableNameSeq) {
     if(verbose) {
       print(paste('start',tabnam, base::date()))
     }
-    handlei <- tDesc$handle[[which(tDesc$tableName==tabnam)]]
+    handlei <- NULL
+    if(!dryRun) {
+      handlei <- tMap[[tabnam]]
+      if(is.null(dataSource)) {
+        dataSource <- replyr_get_src(handlei)
+      }
+    }
     keyRows <- which((columnJoinPlan$tableName==tabnam) &
       (columnJoinPlan$isKey))
     valRows <- which((columnJoinPlan$tableName==tabnam) &
                        (columnJoinPlan$want) &
                        (!columnJoinPlan$isKey))
     tableIndCol <- tableIndColNames[[tabnam]]
-    nmap <- c(tableIndCol,
-              columnJoinPlan$sourceColumn[keyRows],
-              columnJoinPlan$sourceColumn[valRows])
-    names(nmap) <- c(tableIndCol,
-                     columnJoinPlan$resultColumn[keyRows],
-                     columnJoinPlan$resultColumn[valRows])
+    if(first) {
+      nmap <- c(columnJoinPlan$sourceColumn[keyRows],
+                columnJoinPlan$sourceColumn[valRows])
+      names(nmap) <- c(columnJoinPlan$resultColumn[keyRows],
+                       columnJoinPlan$resultColumn[valRows])
+    } else {
+      nmap <- c(tableIndCol,
+                columnJoinPlan$sourceColumn[keyRows],
+                columnJoinPlan$sourceColumn[valRows])
+      names(nmap) <- c(tableIndCol,
+                       columnJoinPlan$resultColumn[keyRows],
+                       columnJoinPlan$resultColumn[valRows])
+    }
     # adding an indicator column lets us handle cases where we are taking
     # no values.
     if(verbose) {
@@ -537,13 +1122,16 @@ executeLeftJoinPlan <- function(tDesc, columnJoinPlan,
         print(paste0("   '",ni,"' = '",nmap[[ni]],"'"))
       }
     }
-    ti <- handlei %>%
-      addConstantColumn(tableIndCol, 1) %>%
-      replyr_mapRestrictCols(nmap, restrict=TRUE)
-    if(eagerCompute) {
-      ti <-  dplyr::compute(ti, name=tempNameGenerator())
+    ti <- NULL
+    if(!is.null(handlei)) {
+      ti <- handlei %>%
+        addConstantColumn(tableIndCol, 1) %>%
+        replyr_mapRestrictCols(nmap, restrict=TRUE)
+      if(eagerCompute) {
+        ti <- dplyr::compute(ti, name=tempNameGenerator())
+      }
     }
-    if(is.null(res)) {
+    if(first) {
       res <- ti
       if(verbose) {
         print(paste0(" res <- ", tabnam))
@@ -551,24 +1139,28 @@ executeLeftJoinPlan <- function(tDesc, columnJoinPlan,
     } else {
       rightKeys <- columnJoinPlan$resultColumn[keyRows]
       if(verbose) {
-        print(paste0(" res <- left_join(res, ", tabnam, ", by = ",
-                    charArrayToString(rightKeys),
-                    ")"))
+        print(paste0(" res <- left_join(res, ", tabnam, ","))
+        print(paste0("                  by = ",
+                     charArrayToString(rightKeys),
+                     ")"))
       }
-      res <- dplyr::left_join(res, ti, by= rightKeys)
-      REPLYR_TABLE_PRESENT_COL <- NULL # signal not an unbound variable
-      wrapr::let(
-        c(REPLYR_TABLE_PRESENT_COL= tableIndCol),
-        res <- dplyr::mutate(res, REPLYR_TABLE_PRESENT_COL =
-                               ifelse(is.na(REPLYR_TABLE_PRESENT_COL), 0, 1))
-      )
-      if(eagerCompute) {
-        res <- dplyr::compute(res, name=tempNameGenerator())
+      if(!dryRun) {
+        res <- dplyr::left_join(res, ti, by= rightKeys)
+        REPLYR_TABLE_PRESENT_COL <- NULL # signal not an unbound variable
+        wrapr::let(
+          c(REPLYR_TABLE_PRESENT_COL= tableIndCol),
+          res <- dplyr::mutate(res, REPLYR_TABLE_PRESENT_COL =
+                                 ifelse(is.na(REPLYR_TABLE_PRESENT_COL), 0, 1))
+        )
+        if(eagerCompute) {
+          res <- dplyr::compute(res, name=tempNameGenerator())
+        }
       }
     }
     if(verbose) {
       print(paste('done',tabnam, base::date()))
     }
+    first <- FALSE
   }
   res
 }

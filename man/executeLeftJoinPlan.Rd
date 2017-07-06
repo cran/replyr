@@ -6,16 +6,17 @@
 \usage{
 executeLeftJoinPlan(tDesc, columnJoinPlan, ..., checkColumns = FALSE,
   eagerCompute = TRUE, checkColClasses = FALSE, verbose = FALSE,
+  dryRun = FALSE,
   tempNameGenerator = makeTempNameGenerator("executeLeftJoinPlan"))
 }
 \arguments{
-\item{tDesc}{description of tables, from \code{\link{tableDesription}} only used to map table names to data.}
+\item{tDesc}{description of tables, either a \code{data.frame} from \code{\link{tableDescription}}, or a list mapping from names to handles/frames.  Only used to map table names to data.}
 
 \item{columnJoinPlan}{columns to join, from \code{\link{buildJoinPlan}} (and likely altered by user).  Note: no column names must intersect with names of the form \code{table_CLEANEDTABNAME_present}.}
 
 \item{...}{force later arguments to bind by name.}
 
-\item{checkColumns}{logical if TURE confirm column names before starting joins.}
+\item{checkColumns}{logical if TRUE confirm column names before starting joins.}
 
 \item{eagerCompute}{logical if TRUE materialize intermediate results with \code{dplyr::compute}.}
 
@@ -23,13 +24,15 @@ executeLeftJoinPlan(tDesc, columnJoinPlan, ..., checkColumns = FALSE,
 
 \item{verbose}{logical if TRUE print more.}
 
+\item{dryRun}{logical if TRUE do not perform joins, only print steps.}
+
 \item{tempNameGenerator}{temp name generator produced by replyr::makeTempNameGenerator, used to record dplyr::compute() effects.}
 }
 \value{
 joined table
 }
 \description{
-Execute an ordered sequence of left joins.
+Please see \code{vignette('DependencySorting', package = 'replyr')} and \code{vignette('joinController', package= 'replyr')} for more details.
 }
 \examples{
 
@@ -42,8 +45,8 @@ meas2 <- data.frame(pid= c(2,3),
                     weight= c(105, 110),
                     width= 1)
 # get the initial description of table defs
-tDesc <- rbind(tableDesription('meas1', meas1),
-               tableDesription('meas2', meas2))
+tDesc <- rbind(tableDescription('meas1', meas1),
+               tableDescription('meas2', meas2))
 # declare keys (and give them consitent names)
 tDesc$keys[[1]] <- list(PatientID= 'id')
 tDesc$keys[[2]] <- list(PatientID= 'pid')
@@ -60,5 +63,15 @@ if(!is.null(inspectDescrAndJoinPlan(tDesc, columnJoinPlan,
 executeLeftJoinPlan(tDesc, columnJoinPlan,
                     checkColClasses= TRUE,
                     verbose= TRUE)
+# also good
+executeLeftJoinPlan(list('meas1'=meas1, 'meas2'=meas2),
+                    columnJoinPlan,
+                    checkColClasses= TRUE,
+                    verbose= TRUE)
 
+}
+\seealso{
+\code{\link{tableDescription}}, \code{\link{buildJoinPlan}}, \code{\link{inspectDescrAndJoinPlan}}, \code{\link{makeJoinDiagramSpec}}
+
+TODO: parameterize the implementation provider (right now hard-coded for \code{dplr}, but at least also direct \code{SQL} is a good extension).
 }

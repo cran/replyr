@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2017-06-12" />
+<meta name="date" content="2017-07-05" />
 
 <title>coalesce</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">coalesce</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2017-06-12</em></h4>
+<h4 class="date"><em>2017-07-05</em></h4>
 
 
 
@@ -162,9 +162,8 @@ dbData &lt;-<span class="st"> </span>dplyr::<span class="kw">copy_to</span>(my_d
 dbSupport &lt;-<span class="st"> </span>dplyr::<span class="kw">copy_to</span>(my_db, support)
 replyr::<span class="kw">replyr_coalesce</span>(dbData, dbSupport, 
                         <span class="dt">fills =</span> <span class="kw">list</span>(<span class="dt">count=</span><span class="dv">0</span>))</code></pre></div>
-<pre><code>## # Source:   table&lt;replyr_coalesce_zkrg2cJ7IDg6bNHde2P7_0000000007&gt; [?? x
-## #   3]
-## # Database: sqlite 3.11.1 [:memory:]
+<pre><code>## # Source:   table&lt;eiliooebtu&gt; [?? x 3]
+## # Database: sqlite 3.19.3 [:memory:]
 ##     year count  name
 ##    &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;
 ##  1  2005     6     a
@@ -207,9 +206,10 @@ s &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="
 <p>Cleaning up:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>())
 <span class="kw">gc</span>()</code></pre></div>
-<pre><code>##           used (Mb) gc trigger  (Mb) max used  (Mb)
-## Ncells  913509 48.8    1442291  77.1  1442291  77.1
-## Vcells 9879115 75.4   26948296 205.6 25950476 198.0</code></pre>
+<pre><code>## Auto-disconnecting SQLiteConnection</code></pre>
+<pre><code>##            used (Mb) gc trigger  (Mb) max used  (Mb)
+## Ncells  1147380 61.3    1770749  94.6  1770749  94.6
+## Vcells 10161799 77.6   26950344 205.7 25952183 198.0</code></pre>
 
 
 

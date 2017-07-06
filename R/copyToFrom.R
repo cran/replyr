@@ -27,11 +27,13 @@ NULL
 #' @export
 #'
 replyr_drop_table_name <- function(dest, name) {
+  if(length(name)<=0) {
+    return(FALSE)
+  }
   if((!is.character(name))||(length(name)!=1)||(nchar(name)<1)) {
     stop('replyr::replyr_drop_table_name name must be a single non-empty string')
   }
-  force(dest)
-  if(is.null(dest)) {
+  if(is.null(dest) || is.character(dest)) {
     # special "no destination" case
     return(FALSE)
   }
@@ -85,7 +87,7 @@ replyr_drop_table_name <- function(dest, name) {
 #'
 #' @export
 replyr_copy_to <- function(dest,
-                           df, name = deparse(substitute(df)),
+                           df, name = paste(deparse(substitute(df)), collapse= ' '),
                            ...,
                            rowNumberColumn= NULL,
                            temporary= FALSE,
@@ -124,7 +126,7 @@ replyr_copy_to <- function(dest,
     replyr_drop_table_name(dest, name)
   }
   if(!is.null(rowNumberColumn)) {
-    df[[rowNumberColumn]] <- seq_len(replyr_nrow(df))
+    df[[rowNumberColumn]] <- seq_len(nrow(df))
   }
   dplyr::copy_to(dest, df, name,
                  temporary=temporary,

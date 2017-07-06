@@ -30,22 +30,30 @@ replyr_copy_to(my_db,
 
 ## ----defs----------------------------------------------------------------
 # map from abstract names to realized names
-tables <- list('meas1' = 'meas1_train',
-               'names' = 'names_facts',
-               'meas2' = 'meas2_train')
-
-# get the initial description of table defs
-got <- lapply(names(tables),
-              function(ni) {
-                # get table reference from source by concrete name
-                ti <- tbl(my_db, tables[[ni]])
-                # map abstract name to reference
-                tableDesription(ni, ti)
-              })
-tDesc <- bind_rows(got)
+trainTables <- data_frame(tableName = c('meas1', 
+                                        'names', 
+                                        'meas2'),
+                          concreteName = c('meas1_train', 
+                                           'names_facts', 
+                                           'meas2_train'))
+# get table references from source by concrete names
+trainTables$handle <- lapply(trainTables$concreteName,
+                             function(ni) {
+                               tbl(my_db, ni)
+                             })
+# convert to full description table
+tDesc <- bind_rows(
+  lapply(seq_len(nrow(trainTables)),
+         function(ri) {
+           ni <- trainTables$tableName[[ri]]
+           ti <- trainTables$handle[[ri]]
+           tableDescription(ni, ti)
+         }
+  )
+)
 
 ## ----lookdesc------------------------------------------------------------
-print(tDesc, width = Inf)
+print(tDesc %>% select(tableName, sourceClass, handle, isEmpty))
 print(tDesc$columns)
 print(tDesc$colClass)
 
@@ -73,7 +81,8 @@ keysAreUnique(tDesc)
 ## ----plan----------------------------------------------------------------
 # build the column join plan
 columnJoinPlan <- buildJoinPlan(tDesc)
-print(columnJoinPlan)
+print(columnJoinPlan %>% 
+        select(tableName, sourceColumn, resultColumn, isKey, want))
 
 ## ----plan2---------------------------------------------------------------
 # decide we don't want the width column
@@ -83,7 +92,26 @@ if(!is.null(inspectDescrAndJoinPlan(tDesc, columnJoinPlan))) {
   stop("bad join plan")
 }
 
-print(columnJoinPlan)
+print(columnJoinPlan %>% 
+        select(tableName, sourceColumn, resultColumn, isKey, want))
+
+## ----render1-------------------------------------------------------------
+# requireNamespace checks just for strict warning hygiene in vignette
+have <- c(
+  requireNamespace('DiagrammeR', quietly = TRUE),
+  requireNamespace('htmlwidgets', quietly = TRUE),
+  requireNamespace('webshot', quietly = TRUE),
+  requireNamespace('magick', quietly = TRUE),
+  requireNamespace('grid', quietly = TRUE)
+)
+if(all(have)) {
+  png <- columnJoinPlan %>%
+    makeJoinDiagramSpec() %>%
+    renderJoinDiagram()
+  if(!is.null(png)) {
+    grid::grid.raster(png)
+  }
+}
 
 ## ----run-----------------------------------------------------------------
 # manage the temp names as in:
@@ -96,7 +124,24 @@ results <- executeLeftJoinPlan(tDesc, columnJoinPlan,
                                tempNameGenerator= tempNameGenerator)
 
 ## ----print---------------------------------------------------------------
-print(as.data.frame(results))
+dplyr::glimpse(results)
+
+## ----execpartialtab------------------------------------------------------
+# hand build table with parallel tableName and handle columns
+tTab <- trainTables %>%
+  select(tableName, handle)
+print(tTab)
+r <- executeLeftJoinPlan(tTab, columnJoinPlan, 
+                         verbose= FALSE,
+                         tempNameGenerator= tempNameGenerator)
+
+## ----listmap-------------------------------------------------------------
+# map of abstract table names to handles
+tMap = trainTables$handle
+names(tMap) <- trainTables$tableName
+r <- executeLeftJoinPlan(tMap, columnJoinPlan, 
+                         verbose= FALSE,
+                         tempNameGenerator= tempNameGenerator)
 
 ## ----cleanup-------------------------------------------------------------
 # cleanup

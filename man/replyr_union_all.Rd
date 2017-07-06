@@ -4,17 +4,20 @@
 \alias{replyr_union_all}
 \title{Union two tables.}
 \usage{
-replyr_union_all(tabA, tabB, ..., cols = NULL,
+replyr_union_all(tabA, tabB, ..., useDplyrLocal = TRUE,
+  useSparkRbind = TRUE,
   tempNameGenerator = makeTempNameGenerator("replyr_union_all"))
 }
 \arguments{
 \item{tabA}{not-NULL table with at least 1 row.}
 
-\item{tabB}{not-NULL table with at least on same data source as tabA and commmon columns.}
+\item{tabB}{not-NULL table with at least 1 row on same data source as tabA and commmon columns.}
 
 \item{...}{force later arguments to be bound by name.}
 
-\item{cols}{list of column names to limit to (defaults to intersection), must be non-empty and contained in intersection.}
+\item{useDplyrLocal}{logical if TRUE use dplyr::bind_rows for local data.}
+
+\item{useSparkRbind}{logical if TRUE try to use rbind on Sparklyr data}
 
 \item{tempNameGenerator}{temp name generator produced by replyr::makeTempNameGenerator, used to record dplyr::compute() effects.}
 }
@@ -28,8 +31,8 @@ This is an attempt to provide a join-based replacement.
 }
 \examples{
 
-d1 <- data.frame(x=c('a','b'))
-d2 <- data.frame(x='c')
-replyr_union_all(d1, d2)
+d1 <- data.frame(x = c('a','b'), y = 1, stringsAsFactors= FALSE)
+d2 <- data.frame(x = 'c', z = 1, stringsAsFactors= FALSE)
+replyr_union_all(d1, d2, useDplyrLocal= FALSE)
 
 }
