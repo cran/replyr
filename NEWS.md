@@ -1,4 +1,16 @@
 
+'replyr' 0.5.2 2017-07-31
+
+ * More forgiving mapping fn.
+ 
+'replyr' 0.5.1 2017-07-12
+
+ * Allow non-strict names in some cases.
+ 
+'replyr' 0.5.0 2017-07-08
+
+ * Start switch over to dot block pipe.
+
 'replyr' 0.4.2 2017-07-05
 
  * fix spelling of tableDescription()

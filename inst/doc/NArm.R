@@ -8,7 +8,9 @@ options(width =100)
 ## ----start----------------------------------------------------------------------------------------
 library('dplyr')
 library('replyr')
-d <- data.frame(x=c(1,2,2),y=c(3,5,NA),z=c(NA,'a','b'),
+d <- data.frame(x=c(1,2,2),
+                y=c(3,5,NA),
+                z=c(NA,'a','b'),
                 stringsAsFactors = FALSE)
 print(d)
 
@@ -72,7 +74,7 @@ print(dTmp)
 ## ----naomit, error=TRUE---------------------------------------------------------------------------
 na.omit(d)
 
-no.omit(dRemote)
+na.omit(dRemote)
 
 ## ----cleanup--------------------------------------------------------------------------------------
 rm(list=ls())

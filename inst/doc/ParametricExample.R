@@ -15,7 +15,8 @@ print(d)
 ## -------------------------------------------------------------------------------------------------
 library("dplyr")
 packageVersion("dplyr")
-d %>% mutate(x_isNA = is.na(x))
+
+mutate(d, x_isNA = is.na(x))
 
 ## -------------------------------------------------------------------------------------------------
 cname <- "x"                            # column we are examining
@@ -29,6 +30,6 @@ print(rname)
 # wrapr::let solution
 wrapr::let(alias = list(cname = cname, rname = rname),
             expr  = {
-            d %>% mutate(rname = is.na(cname))
+              mutate(d, rname = is.na(cname))
             })
 

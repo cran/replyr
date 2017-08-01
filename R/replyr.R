@@ -34,6 +34,9 @@ wrapr::let
 #' @export
 wrapr::restrictToNameAssignments
 
+#' @importFrom wrapr %.>%
+#' @export
+wrapr::`%.>%`
 
 #' @importFrom wrapr DebugFn
 #' @export
@@ -58,3 +61,7 @@ wrapr::DebugPrintFn
 #' @importFrom wrapr DebugPrintFnE
 #' @export
 wrapr::DebugPrintFnE
+
+# so it does not look like an unbound reference in pipes
+. <- NULL
+
