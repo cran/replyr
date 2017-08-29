@@ -1,8 +1,8 @@
 Package: replyr
 Type: Package
 Title: Diligent Use of Big Data with R
-Version: 0.5.2
-Date: 2017-07-31
+Version: 0.5.3
+Date: 2017-08-28
 Authors@R: c(
     person("John", "Mount", email = "jmount@win-vector.com", role = c("aut", "cre")),
     person("Nina", "Zumel", email = "nzumel@win-vector.com", role = c("aut")),
@@ -20,14 +20,15 @@ License: GPL-3
 LazyData: TRUE
 Imports: wrapr (>= 0.4.0), dplyr (>= 0.5.0), DBI, RSQLite
 RoxygenNote: 6.0.1
-Suggests: testthat, knitr, rmarkdown, sparklyr, ggplot2, RPostgreSQL,
-        DiagrammeR, igraph, htmlwidgets, webshot, magick, grid
+Suggests: testthat, knitr, rmarkdown, sparklyr (>= 0.6.2), ggplot2,
+        RPostgreSQL, DiagrammeR, igraph, htmlwidgets, webshot, magick,
+        grid
 VignetteBuilder: knitr
 ByteCompile: true
 NeedsCompilation: no
-Packaged: 2017-07-31 12:27:47 UTC; johnmount
+Packaged: 2017-08-29 03:59:27 UTC; johnmount
 Author: John Mount [aut, cre],
   Nina Zumel [aut],
   Win-Vector LLC [cph]
 Repository: CRAN
-Date/Publication: 2017-08-01 04:42:58 UTC
+Date/Publication: 2017-08-29 12:27:56 UTC

@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2017-07-31" />
+<meta name="date" content="2017-08-28" />
 
 <title>coalesce</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">coalesce</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2017-07-31</em></h4>
+<h4 class="date"><em>2017-08-28</em></h4>
 
 
 
@@ -93,10 +93,10 @@ filled &lt;-<span class="st"> </span>filled[<span class="kw">order</span>(filled
 filled</code></pre></div>
 <pre><code>##   year count name
 ## 1 2005     6    a
-## 6 2006     0 &lt;NA&gt;
+## 4 2006     0 &lt;NA&gt;
 ## 2 2007     1    b
 ## 5 2008     0 &lt;NA&gt;
-## 4 2009     0 &lt;NA&gt;
+## 6 2009     0 &lt;NA&gt;
 ## 3 2010    NA    c</code></pre>
 <p>A cross product of keys example:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># complex key example</span>
@@ -113,29 +113,29 @@ filled &lt;-<span class="st"> </span>filled[<span class="kw">order</span>(filled
 filled</code></pre></div>
 <pre><code>##    year count name
 ## 1  2005     6    a
-## 19 2005     0    b
+## 9  2005     0    b
 ## 14 2005     0    c
-## 9  2005     0    d
-## 24 2006     0    a
-## 18 2006     0    b
-## 13 2006     0    c
-## 8  2006     0    d
-## 23 2007     0    a
+## 19 2005     0    d
+## 4  2006     0    a
+## 10 2006     0    b
+## 15 2006     0    c
+## 20 2006     0    d
+## 5  2007     0    a
 ## 2  2007     1    b
-## 12 2007     0    c
-## 7  2007     0    d
-## 22 2008     0    a
-## 17 2008     0    b
-## 11 2008     0    c
-## 6  2008     0    d
-## 21 2009     0    a
-## 16 2009     0    b
-## 10 2009     0    c
-## 5  2009     0    d
-## 20 2010     0    a
-## 15 2010     0    b
+## 16 2007     0    c
+## 21 2007     0    d
+## 6  2008     0    a
+## 11 2008     0    b
+## 17 2008     0    c
+## 22 2008     0    d
+## 7  2009     0    a
+## 12 2009     0    b
+## 18 2009     0    c
+## 23 2009     0    d
+## 8  2010     0    a
+## 13 2010     0    b
 ## 3  2010    NA    c
-## 4  2010     0    d</code></pre>
+## 24 2010     0    d</code></pre>
 <p>An irregular (cities contained in counties) example:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># cities and counties</span>
 def &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">county=</span> <span class="kw">c</span>(<span class="st">'Calaveras County'</span>,
@@ -162,7 +162,7 @@ dbData &lt;-<span class="st"> </span>dplyr::<span class="kw">copy_to</span>(my_d
 dbSupport &lt;-<span class="st"> </span>dplyr::<span class="kw">copy_to</span>(my_db, support)
 replyr::<span class="kw">replyr_coalesce</span>(dbData, dbSupport, 
                         <span class="dt">fills =</span> <span class="kw">list</span>(<span class="dt">count=</span><span class="dv">0</span>))</code></pre></div>
-<pre><code>## # Source:   table&lt;rybwlgcnhj&gt; [?? x 3]
+<pre><code>## # Source:   table&lt;qcguzwmguw&gt; [?? x 3]
 ## # Database: sqlite 3.19.3 [:memory:]
 ##     year count  name
 ##    &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;
@@ -208,8 +208,8 @@ s &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="
 <span class="kw">gc</span>()</code></pre></div>
 <pre><code>## Auto-disconnecting SQLiteConnection</code></pre>
 <pre><code>##           used (Mb) gc trigger (Mb) max used (Mb)
-## Ncells  984746 52.6    1770749 94.6  1770749 94.6
-## Vcells 1513532 11.6    3637805 27.8  3158936 24.2</code></pre>
+## Ncells  995467 53.2    1770749 94.6  1770749 94.6
+## Vcells 1533899 11.8    4079840 31.2  3333199 25.5</code></pre>
 
 
 
