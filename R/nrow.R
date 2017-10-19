@@ -29,7 +29,11 @@ replyr_hasrows <- function(d) {
       head(.) %.>%
       dplyr::collect(.) %.>%
       as.data.frame(.))
-  if( is.null(dSample) || is.null(nrow(dSample)) || (nrow(dSample)<1)) {
+  if(is.null(dSample)) {
+    return(FALSE)
+  }
+  n <- nrow(dSample)
+  if(is.null(n) || is.na(n) || (n<1)) {
     return(FALSE)
   }
   return(TRUE)
@@ -39,6 +43,7 @@ replyr_hasrows <- function(d) {
 #'
 #' Number of row in a table.  This function is not "group aware" it returns the total number of rows, not rows per dplyr group.
 #' Also \code{replyr_nrow} depends on data being returned to count, so some corner cases (such as zero columns) will count as zero rows.
+#' In particular work around dplyr issue 2871 \url{https://github.com/tidyverse/dplyr/issues/2871}.
 #'
 #' @param x tbl or item that can be coerced into such.
 #' @return number of rows
@@ -50,17 +55,27 @@ replyr_hasrows <- function(d) {
 #'
 #' @export
 replyr_nrow <- function(x) {
-  if(!replyr_hasrows(x)) {
-    return(0)
+  if(is.null(x)) {
+    return(FALSE)
   }
-  constant <- NULL # false binding for 'constant' so name does not look unbound to CRAN check
-  suppressWarnings(
-    x %.>%
-      dplyr::ungroup(.) %.>%
-      dplyr::mutate(., constant=1.0) %.>%
-      dplyr::summarize(., count=sum(constant)) %.>%
-      dplyr::collect(.) %.>%
-      as.data.frame(.) -> tmp)
-  as.numeric(tmp[1, 1, drop=TRUE])
+  # try for easy case
+  n <- nrow(x)
+  if((!is.null(n)) && (!is.na(n))) {
+    # defend against dplyr issue 2871 https://github.com/tidyverse/dplyr/issues/2871
+    return(n)
+  }
+  # get rid of raw columns
+  # nrow() not supported in dbplyr/sparklyr world: http://www.win-vector.com/blog/2017/08/why-to-use-the-replyr-r-package/
+  # previous mutate impl was erroring out: https://github.com/tidyverse/dplyr/issues/3069
+  # and using tally directly is bad: https://github.com/tidyverse/dplyr/issues/3070
+  # and this issue is a problem: https://github.com/tidyverse/dplyr/issues/3071
+  constant <- NULL # make obvious this is not an unbound reference
+  ctab <- x %.>%
+    dplyr::ungroup(.) %.>%
+    dplyr::transmute(., constant = 1.0) %.>%  # collumn we can count, not named n
+    dplyr::summarize(., count = sum(constant)) %.>%
+    dplyr::collect(.)  %.>% # I forget if pull is in dplyr 0.5.0
+    as.data.frame(.)
+  ctab[1,1,drop=TRUE]
 }
 

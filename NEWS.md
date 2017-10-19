@@ -1,4 +1,10 @@
 
+# replyr 0.5.4 2017-10-19
+
+ * Work around ncol() issue.
+ * Work around many nrow() issues.
+ * Temp name generator work in lower case.
+
 # replyr 0.5.3 2017-08-28
 
  * Fix column selector in replyr_summarize().

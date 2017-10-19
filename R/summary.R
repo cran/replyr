@@ -11,7 +11,7 @@ NULL
 
 #' Compute usable summary of columns of tbl.
 #'
-#' Compute per-column summaries and return as a \code{data.frame}.
+#' Compute per-column summaries and return as a \code{data.frame}.  Warning: can be an expensive operation.
 #'
 #' Can be slow compared to \code{dplyr::summarize_all()} (but serves a different purpose).
 #' Also, for numeric columns includes \code{NaN} in \code{nna} count (as is typcial for \code{R}, e.g.,
@@ -60,8 +60,8 @@ replyr_summary <- function(x,
     localSample <- localSample[, cnames, drop=FALSE]
   }
   nrows <- 0
-  if(nrow(localSample)>0) {
-    nrows <- nrow(x)
+  if(replyr_nrow(localSample)>0) {
+    nrows <- replyr_nrow(x)
   }
   cmap <- seq_len(length(cnames))
   names(cmap) <- cnames
