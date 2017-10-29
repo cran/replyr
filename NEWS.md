@@ -1,4 +1,16 @@
 
+# replyr 0.8.2 2017-10-29
+
+ * More checks on pivot/un-pivot.
+ * Deprecate older pivot/un-pivot code.
+ * Switch to insert based bind_rows.
+ * Fix db quoting.
+ 
+# replyr 0.8.0 2017-10-21
+
+ * Bulk SQL row/column ops.
+ * Bump up dependencies.
+
 # replyr 0.5.4 2017-10-19
 
  * Work around ncol() issue.
