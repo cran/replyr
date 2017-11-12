@@ -1,8 +1,8 @@
 Package: replyr
 Type: Package
 Title: Reliable Adaption of Big Data with R
-Version: 0.8.2
-Date: 2017-10-29
+Version: 0.9.0
+Date: 2017-11-11
 Authors@R: c(
     person("John", "Mount", email = "jmount@win-vector.com", role = c("aut", "cre")),
     person("Nina", "Zumel", email = "nzumel@win-vector.com", role = c("aut")),
@@ -29,9 +29,9 @@ Suggests: testthat, knitr, rmarkdown, sparklyr (>= 0.6.3), ggplot2,
 VignetteBuilder: knitr
 ByteCompile: true
 NeedsCompilation: no
-Packaged: 2017-10-29 16:24:42 UTC; johnmount
+Packaged: 2017-11-11 21:43:40 UTC; johnmount
 Author: John Mount [aut, cre],
   Nina Zumel [aut],
   Win-Vector LLC [cph]
 Repository: CRAN
-Date/Publication: 2017-10-29 20:03:47 UTC
+Date/Publication: 2017-11-12 15:16:03 UTC
