@@ -1,8 +1,8 @@
 Package: replyr
 Type: Package
-Title: Reliable Adaption of Big Data with R
-Version: 0.9.0
-Date: 2017-11-11
+Title: Reliable Plying of Remote or Big Data with R
+Version: 0.9.1
+Date: 2018-01-20
 Authors@R: c(
     person("John", "Mount", email = "jmount@win-vector.com", role = c("aut", "cre")),
     person("Nina", "Zumel", email = "nzumel@win-vector.com", role = c("aut")),
@@ -20,18 +20,17 @@ Description: Methods to use 'dplyr' remote data sources ('SQL' databases,
    working with an in-memory R 'data.frame'.
 License: GPL-3
 LazyData: TRUE
-Depends: seplyr (>= 0.1.5), wrapr (>= 1.0.0), cdata (>= 0.1.6)
-Imports: dplyr (>= 0.7.4), dbplyr (>= 1.1.0), DBI (>= 0.7), RSQLite
+Depends: seplyr (>= 0.5.1), wrapr (>= 1.1.0), cdata (>= 0.5.1)
+Imports: dplyr (>= 0.7.4), dbplyr, DBI, RSQLite
 RoxygenNote: 6.0.1
-Suggests: testthat, knitr, rmarkdown, sparklyr (>= 0.6.3), ggplot2,
-        RPostgreSQL, DiagrammeR, igraph, htmlwidgets, webshot, magick,
-        grid
+Suggests: testthat, knitr, rmarkdown, sparklyr, ggplot2, RPostgreSQL,
+        igraph, DiagrammeR, htmlwidgets, webshot, magick, grid
 VignetteBuilder: knitr
 ByteCompile: true
 NeedsCompilation: no
-Packaged: 2017-11-11 21:43:40 UTC; johnmount
+Packaged: 2018-01-20 16:20:10 UTC; johnmount
 Author: John Mount [aut, cre],
   Nina Zumel [aut],
   Win-Vector LLC [cph]
 Repository: CRAN
-Date/Publication: 2017-11-12 15:16:03 UTC
+Date/Publication: 2018-01-20 22:22:53 UTC

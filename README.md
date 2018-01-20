@@ -17,15 +17,14 @@ Note: `replyr` is meant only for "tame data frames" that is data frames with non
 
 Primary `replyr` services include:
 
--   `wrapr::let`
--   `replyr::replyr_apply_f_mapped`
--   `replyr::replyr_split`
--   `replyr::replyr_bind_rows`
--   `replyr::gapply`
--   `replyr::replyr_summary`
--   `replyr::moveValuesToRowsQ`
--   `replyr::moveValuesToColumnsQ`
--   `replyr::replyr_*`
+-   [Join Controller](https://winvector.github.io/replyr/articles/joinController.html)
+-   [Join Planner](https://winvector.github.io/replyr/articles/DependencySorting.html)
+-   [`replyr::replyr_split`](https://winvector.github.io/replyr/reference/replyr_split.html)
+-   [`replyr::replyr_bind_rows`](https://winvector.github.io/replyr/reference/replyr_bind_rows.html)
+-   [`replyr::gapply`](https://winvector.github.io/replyr/reference/gapply.html)
+-   [`replyr::replyr_summary`](https://winvector.github.io/replyr/reference/replyr_summary.html)
+-   [`replyr::replyr_apply_f_mapped`](https://winvector.github.io/replyr/reference/replyr_apply_f_mapped.html)
+-   [`wrapr::let`](https://winvector.github.io/wrapr/reference/let.html)
 
 `wrapr::let`
 ------------
@@ -70,8 +69,6 @@ d %>% ComputeRatioOfColumns('a','b','c')
 ```
 
 `wrapr::let` makes construction of abstract functions over `dplyr` controlled data much easier. It is designed for the case where the "`expr`" block is large sequence of statements and pipelines.
-
-`wrapr::let` is based on `gtools::strmacro` by Gregory R. Warnes.
 
 `replyr::replyr_apply_f_mapped`
 -------------------------------
@@ -191,26 +188,40 @@ The `replyr::replyr_*` functions are all convenience functions supplying common 
 Example: `replyr::replyr_summary` working on a database service (when `base::summary` does not).
 
 ``` r
-d <- data.frame(x=c(1,2,2),y=c(3,5,NA),z=c(NA,'a','b'),
+d <- data.frame(x=rep(c(1,2,2), 5),
+                y=c(3,5,NA),
+                z=c(NA,'a','b'),
                 stringsAsFactors = FALSE)
-if (requireNamespace("RSQLite")) {
-  my_db <- dplyr::src_sqlite(":memory:", create = TRUE)
-  dRemote <- replyr::replyr_copy_to(my_db,d,'d')
-} else {
-  dRemote <- d # local stand in when we can't make remote
-}
- #  Loading required namespace: RSQLite
+my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+RSQLite::initExtension(my_db) # filed as dplyr issue https://github.com/tidyverse/dplyr/issues/3150
+dRemote <- replyr::replyr_copy_to(my_db,d,'d')
 
 summary(dRemote)
  #      Length Class          Mode
  #  src 2      src_dbi        list
  #  ops 2      op_base_remote list
+glimpse(dRemote)
+ #  Observations: NA
+ #  Variables: 3
+ #  $ x <dbl> 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 2, 2
+ #  $ y <dbl> 3, 5, NA, 3, 5, NA, 3, 5, NA, 3, 5, NA, 3, 5, NA
+ #  $ z <chr> NA, "a", "b", NA, "a", "b", NA, "a", "b", NA, "a", "b", NA, "a", "b"
 
 replyr::replyr_summary(dRemote)
- #    column index     class nrows nna nunique min max     mean        sd lexmin lexmax
- #  1      x     1   numeric     3   0      NA   1   2 1.666667 0.5773503   <NA>   <NA>
- #  2      y     2   numeric     3   1      NA   3   5 4.000000 1.4142136   <NA>   <NA>
- #  3      z     3 character     3   1      NA  NA  NA       NA        NA      a      b
+ #  Warning: Missing values are always removed in SQL.
+ #  Use `SUM(x, na.rm = TRUE)` to silence this warning
+ #    column index     class nrows nna nunique min max     mean       sd lexmin lexmax
+ #  1      x     1   numeric    15   0      NA   1   2 1.666667 0.487950   <NA>   <NA>
+ #  2      y     2   numeric    15   5      NA   3   5 4.000000 1.054093   <NA>   <NA>
+ #  3      z     3 character    15   5      NA  NA  NA       NA       NA      a      b
+cdata::qlook(my_db, 'd')
+ #  table `d` SQLiteConnection 
+ #   nrow: 15 
+ #   NOTE: "obs" below is count of sample, not number of rows of data.
+ #  'data.frame':   10 obs. of  3 variables:
+ #   $ x: num  1 2 2 1 2 2 1 2 2 1
+ #   $ y: num  3 5 NA 3 5 NA 3 5 NA 3
+ #   $ z: chr  NA "a" "b" NA ...
 ```
 
 Data types, capabilities, and row-orders all vary a lot as we switch remote data services. But the point of `replyr` is to provide at least some convenient version of typical functions such as: `summary`, `nrow`, unique values, and filter rows by values in a set.
@@ -245,12 +256,21 @@ library('dplyr')
 ``` r
 values <- c(2)
 dRemote %>% replyr::replyr_filter('x', values)
- #  # Source:   table<replyr_filter_fozbl3aswsfvgdhzlkwr_0000000001> [?? x 3]
+ #  # Source: table<replyr_filter_z2jaq3d3uesusj7tzouf_0000000001> [?? x 3]
  #  # Database: sqlite 3.19.3 [:memory:]
- #        x     y     z
- #    <dbl> <dbl> <chr>
- #  1     2     5     a
- #  2     2    NA     b
+ #         x     y z    
+ #     <dbl> <dbl> <chr>
+ #   1  2.00  5.00 a    
+ #   2  2.00 NA    b    
+ #   3  2.00  5.00 a    
+ #   4  2.00 NA    b    
+ #   5  2.00  5.00 a    
+ #   6  2.00 NA    b    
+ #   7  2.00  5.00 a    
+ #   8  2.00 NA    b    
+ #   9  2.00  5.00 a    
+ #  10  2.00 NA    b    
+ #  # ... with more rows
 ```
 
 Commentary
@@ -304,11 +324,13 @@ Clean up
 rm(list=ls())
 gc()
  #            used (Mb) gc trigger (Mb) max used (Mb)
- #  Ncells  682416 36.5    1168576 62.5   940480 50.3
- #  Vcells 1366483 10.5    2552219 19.5  1608687 12.3
+ #  Ncells  719633 38.5    1168576 62.5  1168576 62.5
+ #  Vcells 1466905 11.2    2552219 19.5  1816205 13.9
 ```
 
 Note
 ----
 
-Note: `replyr` is meant only for "tame names", that is: variables and column names that are also valid *simple* (without quotes) `R` variables names. Also `replyr` tries to be a "source agnostic" package, meaning it minimizes the number of places it checks for data source and uses specialized code, this can mean some operations are slow. For example `replyr` does not (yet) use `sparklyr::sdf_pivot()`.
+Note: `replyr` is targeted at data with "tame column names" (column names that are valid both in databases, and as `R` unquoted variable names) and basic types (column values that are simple `R` types such as `character`, `numeric`, `logical`, and so on).
+
+Also `replyr` tries to be a "source agnostic" package, meaning it minimizes the number of places it checks for data source and uses specialized code, this can mean some operations are slow. For example `replyr` does not (yet) use `sparklyr::sdf_pivot()`.
