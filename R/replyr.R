@@ -26,11 +26,8 @@ NULL
 
 # re-export so old code and demos work (from when functions were here)
 
-#' @importFrom wrapr let %.>% :=
-#' @importFrom seplyr novelName arrange_se
-#' @importFrom cdata grepdf makeTempNameGenerator
+#' @importFrom wrapr let %.>% := mk_tmp_name_source
 #' @importFrom RSQLite dbDisconnect
-#' @importFrom dbplyr as.sql
 NULL
 
 #' @export
@@ -68,8 +65,6 @@ wrapr::DebugPrintFn
 #' @export
 wrapr::DebugPrintFnE
 
-#' @export
-cdata::makeTempNameGenerator
 
 # so it does not look like an unbound reference in pipes
 . <- NULL

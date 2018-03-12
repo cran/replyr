@@ -201,15 +201,13 @@ summary(dRemote)
  #  src 2      src_dbi        list
  #  ops 2      op_base_remote list
 glimpse(dRemote)
- #  Observations: NA
+ #  Observations: ??
  #  Variables: 3
  #  $ x <dbl> 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 2, 2
  #  $ y <dbl> 3, 5, NA, 3, 5, NA, 3, 5, NA, 3, 5, NA, 3, 5, NA
  #  $ z <chr> NA, "a", "b", NA, "a", "b", NA, "a", "b", NA, "a", "b", NA, "a", "b"
 
 replyr::replyr_summary(dRemote)
- #  Warning: Missing values are always removed in SQL.
- #  Use `SUM(x, na.rm = TRUE)` to silence this warning
  #    column index     class nrows nna nunique min max     mean       sd lexmin lexmax
  #  1      x     1   numeric    15   0      NA   1   2 1.666667 0.487950   <NA>   <NA>
  #  2      y     2   numeric    15   5      NA   3   5 4.000000 1.054093   <NA>   <NA>
@@ -256,20 +254,20 @@ library('dplyr')
 ``` r
 values <- c(2)
 dRemote %>% replyr::replyr_filter('x', values)
- #  # Source: table<replyr_filter_z2jaq3d3uesusj7tzouf_0000000001> [?? x 3]
+ #  # Source:   table<replyr_filter_52685542898577849674_0000000001> [?? x 3]
  #  # Database: sqlite 3.19.3 [:memory:]
  #         x     y z    
  #     <dbl> <dbl> <chr>
- #   1  2.00  5.00 a    
- #   2  2.00 NA    b    
- #   3  2.00  5.00 a    
- #   4  2.00 NA    b    
- #   5  2.00  5.00 a    
- #   6  2.00 NA    b    
- #   7  2.00  5.00 a    
- #   8  2.00 NA    b    
- #   9  2.00  5.00 a    
- #  10  2.00 NA    b    
+ #   1    2.    5. a    
+ #   2    2.   NA  b    
+ #   3    2.    5. a    
+ #   4    2.   NA  b    
+ #   5    2.    5. a    
+ #   6    2.   NA  b    
+ #   7    2.    5. a    
+ #   8    2.   NA  b    
+ #   9    2.    5. a    
+ #  10    2.   NA  b    
  #  # ... with more rows
 ```
 
@@ -324,8 +322,8 @@ Clean up
 rm(list=ls())
 gc()
  #            used (Mb) gc trigger (Mb) max used (Mb)
- #  Ncells  719633 38.5    1168576 62.5  1168576 62.5
- #  Vcells 1466905 11.2    2552219 19.5  1816205 13.9
+ #  Ncells  730701 39.1    1168576 62.5  1168576 62.5
+ #  Vcells 1518235 11.6    2552219 19.5  1945767 14.9
 ```
 
 Note

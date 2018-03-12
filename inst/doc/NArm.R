@@ -51,16 +51,6 @@ dRemote %>% mutate(nna=0) %>%
   mutate(nna=nna+ifelse(is.na(y),1,0)) %>% 
   mutate(nna=nna+ifelse(is.na(z),1,0))  
 
-## ----countforloop---------------------------------------------------------------------------------
-cols = setdiff(colnames(dRemote),'rowNum')
-dRemote %>% mutate(nna=0) -> dTmp
-for(ci in cols) {
-  dTmp %>% 
-    mutate_(.dots=stats::setNames(paste0('nna+ifelse(is.na(',ci,'),1,0)'),'nna')) -> 
-    dTmp
-}
-print(dTmp)
-
 ## ----countforloopr--------------------------------------------------------------------------------
 cols = setdiff(colnames(dRemote),'rowNum')
 dRemote %>% mutate(nna=0) -> dTmp

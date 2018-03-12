@@ -121,7 +121,7 @@ if(all(have)) {
 ## ----run-----------------------------------------------------------------
 # manage the temp names as in:
 #  http://www.win-vector.com/blog/2017/06/managing-intermediate-results-when-using-rsparklyr/
-tempNameGenerator <- makeTempNameGenerator("extmps")
+tempNameGenerator <- mk_tmp_name_source("extmps")
 
 # execute the left joins
 results <- executeLeftJoinPlan(tDesc, columnJoinPlan, 
