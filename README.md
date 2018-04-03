@@ -1,5 +1,15 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+`replyr` is going into maintenance mode. It has been hard to track shifting `dplyr`/`dbplyr`/`rlang` APIs and data structures post `dplyr` `0.5`. Most of what it does is now done better in one of the newer non-monolithic packages:
+
+-   Programming and meta-programming tools: [`wrapr`](https://CRAN.R-project.org/package=wrapr).
+-   Adapting to standard evaluation interfaces: [`seplyr`](https://CRAN.R-project.org/package=seplyr).
+-   Big data data manipulation: [`rquery`](https://CRAN.R-project.org/package=rquery) and [`cdata`](https://CRAN.R-project.org/package=cdata).
+
+The other functions (join planner/controller and grouped ordered apply) will be eventually ported to one of these packages.
+
+------------------------------------------------------------------------
+
 This document describes `replyr`, an [R](https://cran.r-project.org) package available from [Github](https://github.com/WinVector/replyr) and [CRAN](https://CRAN.R-project.org/package=replyr).
 
 Introduction
@@ -254,8 +264,8 @@ library('dplyr')
 ``` r
 values <- c(2)
 dRemote %>% replyr::replyr_filter('x', values)
- #  # Source:   table<replyr_filter_52685542898577849674_0000000001> [?? x 3]
- #  # Database: sqlite 3.19.3 [:memory:]
+ #  # Source:   table<replyr_filter_53844205212975199309_0000000001> [?? x 3]
+ #  # Database: sqlite 3.22.0 [:memory:]
  #         x     y z    
  #     <dbl> <dbl> <chr>
  #   1    2.    5. a    
@@ -322,8 +332,8 @@ Clean up
 rm(list=ls())
 gc()
  #            used (Mb) gc trigger (Mb) max used (Mb)
- #  Ncells  730701 39.1    1168576 62.5  1168576 62.5
- #  Vcells 1518235 11.6    2552219 19.5  1945767 14.9
+ #  Ncells  733710 39.2    1168576 62.5   940480 50.3
+ #  Vcells 1511502 11.6    2552219 19.5  1889863 14.5
 ```
 
 Note

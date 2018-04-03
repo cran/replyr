@@ -30,19 +30,25 @@ summary(d)
 
 replyr::replyr_summary(d)
 
-my_db <- dplyr::src_sqlite(":memory:", create = TRUE)
-dbData <- dplyr::copy_to(my_db, d)
-
-summary(dbData)
-
-replyr::replyr_summary(dbData)
-
-# glimpse works more like str or head
-dplyr::glimpse(dbData)
+execute_vignette <- requireNamespace("RSQLite", quietly = TRUE) &&
+  requireNamespace("dbplyr", quietly = TRUE)
+if(execute_vignette) {
+  my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+  RSQLite::initExtension(my_db)
+  dbData <- dplyr::copy_to(my_db, d)
+  
+  summary(dbData)
+  
+  replyr::replyr_summary(dbData)
+  
+  # glimpse works more like str or head
+  dplyr::glimpse(dbData)
+}
 
 ```
 
 ```{r cleanup}
+DBI::dbDisconnect(my_db)
 rm(list=ls())
 gc()
 ```

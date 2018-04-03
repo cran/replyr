@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2018-03-12" />
+<meta name="date" content="2018-04-03" />
 
 <title>replyr</title>
 
@@ -70,10 +70,18 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">replyr</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2018-03-12</em></h4>
+<h4 class="date"><em>2018-04-03</em></h4>
 
 
 
+<p><code>replyr</code> is going into maintenance mode. It has been hard to track shifting <code>dplyr</code> APIs and data structures post <code>dplyr</code> <code>0.5</code>. Most of what it does is now done better in one of the newer non-monolithic packages:</p>
+<ul>
+<li>Programming and meta-programming tools: <a href="https://CRAN.R-project.org/package=wrapr"><code>wrapr</code></a>.</li>
+<li>Adapting  to standard evaluation interfaces: <a href="https://CRAN.R-project.org/package=seplyr"><code>seplyr</code></a>.</li>
+<li>Big data data manipulation: <a href="https://CRAN.R-project.org/package=rquery"><code>rquery</code></a> and <a href="https://CRAN.R-project.org/package=cdata"><code>cdata</code></a>.</li>
+</ul>
+<p>The other functions (join planner/controller and grouped ordered apply) will be eventually ported to one of these packages.</p>
+<hr />
 <p>This document describes <code>replyr</code>, an <a href="https://cran.r-project.org">R</a> package available from <a href="https://github.com/WinVector/replyr">Github</a> and <a href="https://CRAN.R-project.org/package=replyr">CRAN</a>.</p>
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
@@ -223,8 +231,10 @@ d <span class="op">%&gt;%</span><span class="st"> </span>replyr<span class="op">
 <p>Example: <code>replyr::replyr_summary</code> working on a database service (when <code>base::summary</code> does not).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">d &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">x=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">2</span>),<span class="dt">y=</span><span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">5</span>,<span class="ot">NA</span>),<span class="dt">z=</span><span class="kw">c</span>(<span class="ot">NA</span>,<span class="st">'a'</span>,<span class="st">'b'</span>),
                 <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>)
-<span class="cf">if</span> (<span class="kw">requireNamespace</span>(<span class="st">&quot;RSQLite&quot;</span>)) {
-  my_db &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw">src_sqlite</span>(<span class="st">&quot;:memory:&quot;</span>, <span class="dt">create =</span> <span class="ot">TRUE</span>)
+<span class="cf">if</span> (<span class="kw">requireNamespace</span>(<span class="st">&quot;RSQLite&quot;</span>, <span class="dt">quietly =</span> <span class="ot">TRUE</span>) <span class="op">&amp;&amp;</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">requireNamespace</span>(<span class="st">&quot;dbplyr&quot;</span>, <span class="dt">quietly =</span> <span class="ot">TRUE</span>)) {
+  my_db &lt;-<span class="st"> </span>DBI<span class="op">::</span><span class="kw">dbConnect</span>(RSQLite<span class="op">::</span><span class="kw">SQLite</span>(), <span class="st">&quot;:memory:&quot;</span>)
+  RSQLite<span class="op">::</span><span class="kw">initExtension</span>(my_db)
   dRemote &lt;-<span class="st"> </span>replyr<span class="op">::</span><span class="kw">replyr_copy_to</span>(my_db,d,<span class="st">'d'</span>)
 } <span class="cf">else</span> {
   dRemote &lt;-<span class="st"> </span>d <span class="co"># local stand in when we can't make remote</span>
@@ -265,8 +275,8 @@ replyr<span class="op">::</span><span class="kw">replyr_summary</span>(dRemote)
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">'dplyr'</span>)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">values &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">2</span>)
 dRemote <span class="op">%&gt;%</span><span class="st"> </span>replyr<span class="op">::</span><span class="kw">replyr_filter</span>(<span class="st">'x'</span>, values)
- <span class="co">#  # Source:   table&lt;replyr_filter_74529897204323188162_0000000001&gt; [?? x 3]</span>
- <span class="co">#  # Database: sqlite 3.19.3 [:memory:]</span>
+ <span class="co">#  # Source:   table&lt;replyr_filter_58882225015210067722_0000000001&gt; [?? x 3]</span>
+ <span class="co">#  # Database: sqlite 3.22.0 [:memory:]</span>
  <span class="co">#        x     y z    </span>
  <span class="co">#    &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;</span>
  <span class="co">#  1    2.    5. a    </span>
@@ -306,11 +316,12 @@ dRemote <span class="op">%&gt;%</span><span class="st"> </span>replyr<span class
 </div>
 <div id="clean-up" class="section level2">
 <h2>Clean up</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>())
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">DBI<span class="op">::</span><span class="kw">dbDisconnect</span>(my_db)
+<span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>())
 <span class="kw">gc</span>()
  <span class="co">#            used (Mb) gc trigger (Mb) max used (Mb)</span>
- <span class="co">#  Ncells 1140139 60.9    1770749 94.6  1770749 94.6</span>
- <span class="co">#  Vcells 1829429 14.0    4140191 31.6  3931499 30.0</span></code></pre></div>
+ <span class="co">#  Ncells 1138854 60.9    1770749 94.6  1770749 94.6</span>
+ <span class="co">#  Vcells 1827324 14.0    4135546 31.6  3940897 30.1</span></code></pre></div>
 </div>
 
 

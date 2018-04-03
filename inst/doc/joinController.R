@@ -4,11 +4,13 @@ suppressPackageStartupMessages(library("dplyr"))
 packageVersion("dplyr")
 library("replyr")
 packageVersion("replyr")
+execute_vignette <- requireNamespace("RSQLite", quietly = TRUE) &&
+   requireNamespace("dbplyr", quietly = TRUE)
 
-## ----data----------------------------------------------------------------
+## ----data, eval=execute_vignette-----------------------------------------
 # load notional example data
-my_db <- dplyr::src_sqlite(":memory:", 
-                           create = TRUE)
+my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+RSQLite::initExtension(my_db)
 # example data
 replyr_copy_to(my_db,
                data.frame(id= c(1,1,2,2),
@@ -28,7 +30,7 @@ replyr_copy_to(my_db,
                           width= 1),
                'meas2_train')
 
-## ----defs----------------------------------------------------------------
+## ----defs, eval=execute_vignette-----------------------------------------
 # map from abstract names to realized names
 trainTables <- data_frame(tableName = c('meas1', 
                                         'names', 
@@ -52,7 +54,7 @@ tDesc <- bind_rows(
   )
 )
 
-## ----lookdesc------------------------------------------------------------
+## ----lookdesc, eval=execute_vignette-------------------------------------
 print(tDesc %>% select(tableName, sourceClass, handle, isEmpty))
 print(tDesc$columns)
 print(tDesc$colClass)
@@ -61,13 +63,13 @@ print(tDesc$colClass)
 names(tDesc$keys) <- tDesc$tableName
 print(tDesc$keys)
 
-## ----badjoinplan---------------------------------------------------------
+## ----badjoinplan, eval=execute_vignette----------------------------------
 tryCatch(
   buildJoinPlan(tDesc),
   error = function(e) {e}
 )
 
-## ----keys----------------------------------------------------------------
+## ----keys, eval=execute_vignette-----------------------------------------
 # declare keys (and give them consistent names)
 tDesc$keys[[1]] <- c(PatientID= 'id', MeasurementDate= 'date')
 tDesc$keys[[2]] <- c(PatientID= 'id')
@@ -75,16 +77,16 @@ tDesc$keys[[3]] <- c(PatientID= 'pid', MeasurementDate= 'date')
 
 print(tDesc$keys)
 
-## ----keycheck------------------------------------------------------------
+## ----keycheck, eval=execute_vignette-------------------------------------
 keysAreUnique(tDesc)
 
-## ----plan----------------------------------------------------------------
+## ----plan, eval=execute_vignette-----------------------------------------
 # build the column join plan
 columnJoinPlan <- buildJoinPlan(tDesc)
 print(columnJoinPlan %>% 
         select(tableName, sourceColumn, resultColumn, isKey, want))
 
-## ----plan2---------------------------------------------------------------
+## ----plan2, eval=execute_vignette----------------------------------------
 # decide we don't want the width column
 columnJoinPlan$want[columnJoinPlan$resultColumn=='width'] <- FALSE
 # double check our plan
@@ -95,7 +97,7 @@ if(!is.null(inspectDescrAndJoinPlan(tDesc, columnJoinPlan))) {
 print(columnJoinPlan %>% 
         select(tableName, sourceColumn, resultColumn, isKey, want))
 
-## ----render1-------------------------------------------------------------
+## ----render1, eval=execute_vignette--------------------------------------
 # requireNamespace checks just for strict warning hygiene in vignette
 have <- c(
   requireNamespace('DiagrammeR', quietly = TRUE),
@@ -118,7 +120,7 @@ if(all(have)) {
   )
 }
 
-## ----run-----------------------------------------------------------------
+## ----run, eval=execute_vignette------------------------------------------
 # manage the temp names as in:
 #  http://www.win-vector.com/blog/2017/06/managing-intermediate-results-when-using-rsparklyr/
 tempNameGenerator <- mk_tmp_name_source("extmps")
@@ -128,10 +130,10 @@ results <- executeLeftJoinPlan(tDesc, columnJoinPlan,
                                verbose= TRUE,
                                tempNameGenerator= tempNameGenerator)
 
-## ----print---------------------------------------------------------------
+## ----print, eval=execute_vignette----------------------------------------
 dplyr::glimpse(results)
 
-## ----execpartialtab------------------------------------------------------
+## ----execpartialtab, eval=execute_vignette-------------------------------
 # hand build table with parallel tableName and handle columns
 tTab <- trainTables %>%
   select(tableName, handle)
@@ -140,7 +142,7 @@ r <- executeLeftJoinPlan(tTab, columnJoinPlan,
                          verbose= FALSE,
                          tempNameGenerator= tempNameGenerator)
 
-## ----listmap-------------------------------------------------------------
+## ----listmap, eval=execute_vignette--------------------------------------
 # map of abstract table names to handles
 tMap = trainTables$handle
 names(tMap) <- trainTables$tableName
@@ -148,12 +150,7 @@ r <- executeLeftJoinPlan(tMap, columnJoinPlan,
                          verbose= FALSE,
                          tempNameGenerator= tempNameGenerator)
 
-## ----cleanup-------------------------------------------------------------
+## ----cleanup, eval=execute_vignette--------------------------------------
 # cleanup
-temps <- tempNameGenerator(dumpList= TRUE)
-for(ti in temps) {
-  replyr_drop_table_name(my_db, ti)
-}
-rm(list=ls())
-gc(verbose= FALSE)
+DBI::dbDisconnect(my_db)
 

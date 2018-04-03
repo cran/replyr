@@ -1,3 +1,5 @@
+
+
 # Contributed by John Mount jmount@win-vector.com , ownership assigned to Win-Vector LLC.
 # Win-Vector LLC currently distributes this code without intellectual property indemnification, warranty, claim of fitness of purpose, or any other guarantee under a GPL3 license.
 
@@ -137,7 +139,7 @@ replyr_union_all <- function(tabA, tabB,
 
 # list length>=1 no null entries, doesn't return NULL
 r_replyr_bind_rows <- function(lst,
-                               eagerTempRemoval, atTopLevel,
+                               atTopLevel,
                                privateTempNameGenerator,
                                publicTempNameGenerator) {
   n <- length(lst)
@@ -152,57 +154,46 @@ r_replyr_bind_rows <- function(lst,
   leftSeq <- 1:mid      # n>=2 so mid>=1
   rightSeq <- (mid+1):n # n>=2 so mid+1<=n
   left <- r_replyr_bind_rows(lst[leftSeq],
-                             eagerTempRemoval, FALSE,
+                             FALSE,
                              privateTempNameGenerator, publicTempNameGenerator)
   right <- r_replyr_bind_rows(lst[rightSeq],
-                              eagerTempRemoval, FALSE,
+                              FALSE,
                               privateTempNameGenerator, publicTempNameGenerator)
-  namesToNuke <- NULL
-  if(eagerTempRemoval) {
-    namesToNuke <- privateTempNameGenerator(dumpList=TRUE)
-  }
   res <- replyr_union_all(left, right,
                           useDplyrLocal= FALSE,
                           useSparkRbind= FALSE,
-                          tempNameGenerator= ifelse(atTopLevel ||
-                                                      (!eagerTempRemoval),
+                          tempNameGenerator= ifelse(atTopLevel,
                                                     publicTempNameGenerator,
                                                     privateTempNameGenerator))
   res <- dplyr::compute(res)
-  if(length(namesToNuke)>0) {
-    src <- replyr_get_src(left)
-    for(ni in namesToNuke) {
-      replyr_drop_table_name(src, ni)
-    }
-  }
   res
 }
 
 
 #' Bind a list of items by rows (can't use dplyr::bind_rows or dplyr::combine on remote sources).  Columns are intersected.
 #'
-#' Can't set \code{eagerTempRemoval=TRUE} on platforms that don't correctly implement \code{dplyr::compute}
-#' (for instance \code{Sparklyr} prior to full resolution of \url{https://github.com/rstudio/sparklyr/issues/721}).
 #'
 #' @param lst list of items to combine, must be all in same dplyr data service
 #' @param ... force other arguments to be used by name
 #' @param useDplyrLocal logical if TRUE use dplyr for local data.
 #' @param useSparkRbind logical if TRUE try to use rbind on Sparklyr data
 #' @param useUnionALL logical if TRUE try to use union all binding
-#' @param eagerTempRemoval logical if TRUE remove temps early.
 #' @param tempNameGenerator temp name generator produced by wrapr::mk_tmp_name_source, used to record dplyr::compute() effects.
 #' @return single data item
 #'
 #' @examples
 #'
-#'
-#' my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
-#' # my_db <- sparklyr::spark_connect(master = "local")
-#' d <- replyr_copy_to(my_db, data.frame(x = 1:2), 'd',
-#'                     temporary = TRUE)
-#' # dplyr::bind_rows(list(d, d))
-#' # # Argument 1 must be a data frame or a named atomic vector, not a tbl_dbi/tbl_sql/tbl_lazy/tbl
-#' replyr_bind_rows(list(d, d))
+#' if (requireNamespace("RSQLite", quietly = TRUE)) {
+#'   my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+#'   # my_db <- sparklyr::spark_connect(master = "local")
+#'   d <- replyr_copy_to(my_db, data.frame(x = 1:2), 'd',
+#'                       temporary = TRUE)
+#'   # dplyr::bind_rows(list(d, d))
+#'   # # Argument 1 must be a data frame or a named atomic vector,
+#'   # # not a tbl_dbi/tbl_sql/tbl_lazy/tbl
+#'   print(replyr_bind_rows(list(d, d)))
+#'   DBI::dbDisconnect(my_db)
+#' }
 #'
 #' @export
 replyr_bind_rows <- function(lst,
@@ -210,7 +201,6 @@ replyr_bind_rows <- function(lst,
                              useDplyrLocal= TRUE,
                              useSparkRbind= TRUE,
                              useUnionALL= TRUE,
-                             eagerTempRemoval= FALSE,
                              tempNameGenerator= mk_tmp_name_source("replyr_bind_rows")) {
   if(length(list(...))>0) {
     stop("replyr::replyr_bind_rows unexpected arguments")
@@ -256,7 +246,7 @@ replyr_bind_rows <- function(lst,
     return(res)
   }
   # nasty recursive fall-back
-  r_replyr_bind_rows(lst, eagerTempRemoval, TRUE,
+  r_replyr_bind_rows(lst, TRUE,
                      mk_tmp_name_source("bind_rows_priv"),
                      tempNameGenerator)
 }

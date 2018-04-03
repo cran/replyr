@@ -1,4 +1,13 @@
 
+# replyr 0.9.3 2018-04-03
+
+ * Demote replyr to maintenance mode.
+ * Attempt work around dependency errors.
+ * Further reduce direct dependencies.
+ * Clean SQL up a bit.
+ * Fix new errors caught on CRAN.
+ * Stop re-exports.
+
 # replyr 0.9.2 2018-03-11
 
  * Move to wrapr 1.2.0

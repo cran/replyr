@@ -1,21 +1,19 @@
 ## ----setup, include=FALSE------------------------------------------------
-# note: employeeanddate is likely built as a cross-product
-#       join of an employee table and set of dates of interest
-#       before getting to the join controller step.  We call
-#       such a table "row control" or "experimental design."
+execute_vignette <- requireNamespace("RSQLite", quietly = TRUE) &&
+  requireNamespace("dbplyr", quietly = TRUE)
+if(execute_vignette) {
+  my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+  RSQLite::initExtension(my_db)
+  exDesc <- replyr:::example_employeeAndDate(my_db)
+}
 
-my_db <- dplyr::src_sqlite(":memory:",
-                           create = TRUE)
-
-exDesc <- replyr:::example_employeeAndDate(my_db)
-
-## ----tableNames----------------------------------------------------------
+## ----tableNames, eval=execute_vignette-----------------------------------
 tableNames <- c('employeeanddate',
                 'revenue',
                 'activity',
                 'orgtable')
 
-## ----builddesc-----------------------------------------------------------
+## ----builddesc, eval=execute_vignette------------------------------------
 suppressPackageStartupMessages(library("dplyr"))
 library("replyr")
 
@@ -30,18 +28,18 @@ tDesc <- tableNames %>%
 
 print(tDesc[, c('tableName', 'handle', 'keys', 'columns'), ])
 
-## ----plan1---------------------------------------------------------------
+## ----plan1, eval=execute_vignette----------------------------------------
 columnJoinPlan <- buildJoinPlan(tDesc, check= FALSE)
 print(columnJoinPlan[, c('tableName', 'sourceColumn', 'resultColumn', 'isKey')])
 
-## ----rekey---------------------------------------------------------------
+## ----rekey, eval=execute_vignette----------------------------------------
 columnJoinPlan$resultColumn[columnJoinPlan$sourceColumn=='id'] <- 'eid'
 print(columnJoinPlan[, c('tableName', 'sourceColumn', 'resultColumn', 'isKey')])
 
-## ----check1--------------------------------------------------------------
+## ----check1, eval=execute_vignette---------------------------------------
 print(paste("issues:", inspectDescrAndJoinPlan(tDesc, columnJoinPlan)))
 
-## ----sort----------------------------------------------------------------
+## ----sort, eval=execute_vignette-----------------------------------------
 sorted <- NULL
 # requireNamespace checks just for strict warning hygiene in vignette
 if(requireNamespace('igraph', quietly = TRUE)) {
@@ -50,13 +48,13 @@ if(requireNamespace('igraph', quietly = TRUE)) {
   print(sorted$tableOrder)
 }
 
-## ----check2--------------------------------------------------------------
+## ----check2, eval=execute_vignette---------------------------------------
 if(!is.null(sorted)) {
   print(paste("issues:", inspectDescrAndJoinPlan(tDesc, 
                                                  sorted$columnJoinPlan)))
 }
 
-## ----render1-------------------------------------------------------------
+## ----render1, eval=execute_vignette--------------------------------------
 # requireNamespace checks just for strict warning hygiene in vignette
 if(!is.null(sorted)) {
   have <- c(
@@ -81,7 +79,7 @@ if(!is.null(sorted)) {
   }
 }
 
-## ----steps---------------------------------------------------------------
+## ----steps, eval=execute_vignette----------------------------------------
 if(!is.null(sorted)) {
   print("join plan execution log")
   res <- executeLeftJoinPlan(tDesc, 
@@ -91,10 +89,6 @@ if(!is.null(sorted)) {
   dplyr::glimpse(res)
 }
 
-## ----cleanup-------------------------------------------------------------
-for(ni in tableNames) {
-  replyr_drop_table_name(my_db, ni)
-}
-rm(list=ls())
-gc(verbose = FALSE)
+## ----cleanup, eval=execute_vignette--------------------------------------
+DBI::dbDisconnect(my_db)
 

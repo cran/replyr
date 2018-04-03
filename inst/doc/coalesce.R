@@ -45,14 +45,20 @@ counts <- data.frame(county= c('Calaveras County',
                      stringsAsFactors= FALSE)
 replyr::replyr_coalesce(counts, def, fills = list(n=0))
 
-## ----dbexample-----------------------------------------------------------
-my_db <- dplyr::src_sqlite(":memory:", create = TRUE)
+## ----checkpkg------------------------------------------------------------
+execute_vignette <- requireNamespace("RSQLite", quietly = TRUE) &&
+  requireNamespace("dbplyr", quietly = TRUE)
+
+## ----dbexample, eval=execute_vignette------------------------------------
+
+my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+RSQLite::initExtension(my_db)
 dbData <- dplyr::copy_to(my_db, data)
 dbSupport <- dplyr::copy_to(my_db, support)
 replyr::replyr_coalesce(dbData, dbSupport, 
                         fills = list(count=0))
 
-## ----fill----------------------------------------------------------------
+## ----fill, eval=execute_vignette-----------------------------------------
 d <- data.frame(x=c('a','c'), n=c(1,NA), 
                 stringsAsFactors=FALSE)
 s <- data.frame(x=c('a','b','c'), 
@@ -63,7 +69,7 @@ print(d)
 replyr::replyr_coalesce(d,s,
                         fills= list(n=0))
 
-## ----detect--------------------------------------------------------------
+## ----detect, eval=execute_vignette---------------------------------------
 d <- data.frame(x=c('a','c'), n=c(1,NA), 
                 stringsAsFactors=FALSE)
 s <- data.frame(x=c('a','b'), 
@@ -74,6 +80,7 @@ tryCatch(
   error= function(e) { e })
 
 ## ----cleanup-------------------------------------------------------------
+DBI::dbDisconnect(my_db)
 rm(list=ls())
 gc()
 
