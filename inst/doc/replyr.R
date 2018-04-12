@@ -72,8 +72,7 @@ d %>% replyr::gapply('group', rank_in_group, ocolumn='order', decreasing=TRUE)
 ## ----summaryexample-------------------------------------------------------------------------------
 d <- data.frame(x=c(1,2,2),y=c(3,5,NA),z=c(NA,'a','b'),
                 stringsAsFactors = FALSE)
-if (requireNamespace("RSQLite", quietly = TRUE) && 
-    requireNamespace("dbplyr", quietly = TRUE)) {
+if (requireNamespace("RSQLite", quietly = TRUE)) {
   my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
   RSQLite::initExtension(my_db)
   dRemote <- replyr::replyr_copy_to(my_db,d,'d')

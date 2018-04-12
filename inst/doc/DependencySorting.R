@@ -1,6 +1,5 @@
 ## ----setup, include=FALSE------------------------------------------------
-execute_vignette <- requireNamespace("RSQLite", quietly = TRUE) &&
-  requireNamespace("dbplyr", quietly = TRUE)
+execute_vignette <- requireNamespace("RSQLite", quietly = TRUE)
 if(execute_vignette) {
   my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
   RSQLite::initExtension(my_db)

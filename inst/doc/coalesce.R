@@ -46,8 +46,7 @@ counts <- data.frame(county= c('Calaveras County',
 replyr::replyr_coalesce(counts, def, fills = list(n=0))
 
 ## ----checkpkg------------------------------------------------------------
-execute_vignette <- requireNamespace("RSQLite", quietly = TRUE) &&
-  requireNamespace("dbplyr", quietly = TRUE)
+execute_vignette <- requireNamespace("RSQLite", quietly = TRUE)
 
 ## ----dbexample, eval=execute_vignette------------------------------------
 

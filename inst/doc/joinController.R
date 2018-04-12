@@ -4,8 +4,7 @@ suppressPackageStartupMessages(library("dplyr"))
 packageVersion("dplyr")
 library("replyr")
 packageVersion("replyr")
-execute_vignette <- requireNamespace("RSQLite", quietly = TRUE) &&
-   requireNamespace("dbplyr", quietly = TRUE)
+execute_vignette <- requireNamespace("RSQLite", quietly = TRUE)
 
 ## ----data, eval=execute_vignette-----------------------------------------
 # load notional example data

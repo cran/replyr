@@ -1,8 +1,8 @@
 Package: replyr
 Type: Package
 Title: Patches to Use 'dplyr' on Remote Data Sources
-Version: 0.9.3
-Date: 2018-04-03
+Version: 0.9.4
+Date: 2018-04-12
 Authors@R: c(
     person("John", "Mount", email = "jmount@win-vector.com", role = c("aut", "cre")),
     person("Nina", "Zumel", email = "nzumel@win-vector.com", role = c("aut")),
@@ -21,17 +21,17 @@ Description: Patches to use 'dplyr' on remote data sources ('SQL' databases,
    or 'cdata'.
 License: GPL-3
 LazyData: TRUE
-Depends: wrapr (>= 1.3.0)
-Imports: dplyr (>= 0.7.0), dbplyr, DBI
+Depends: wrapr (>= 1.4.0)
+Imports: dplyr (>= 0.7.0), DBI
 RoxygenNote: 6.0.1
 Suggests: testthat, knitr, rmarkdown, sparklyr, ggplot2, igraph,
         DiagrammeR, htmlwidgets, webshot, magick, grid, RSQLite
 VignetteBuilder: knitr
 ByteCompile: true
 NeedsCompilation: no
-Packaged: 2018-04-03 21:02:09 UTC; johnmount
+Packaged: 2018-04-12 14:47:58 UTC; johnmount
 Author: John Mount [aut, cre],
   Nina Zumel [aut],
   Win-Vector LLC [cph]
 Repository: CRAN
-Date/Publication: 2018-04-03 21:15:56 UTC
+Date/Publication: 2018-04-12 15:02:40 UTC

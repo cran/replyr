@@ -291,7 +291,7 @@ tableDescription <- function(tableName,
 #' @export
 #'
 keysAreUnique <- function(tDesc) {
-  n <- function(...) {} # declare not  unbound
+  n <- dplyr::n # declare not  unbound
   isunique <- vapply(seq_len(replyr_nrow(tDesc)),
                      function(i) {
                        gi <- tDesc$handle[[i]]
@@ -427,8 +427,7 @@ inspectAndLimitJoinPlan <- function(columnJoinPlan, checkColClasses) {
 #'
 #' @examples
 #'
-#' if (requireNamespace("RSQLite", quietly = TRUE) &&
-#'   requireNamespace("dbplyr", quietly = TRUE)) {
+#' if (requireNamespace("RSQLite", quietly = TRUE)) {
 #'   # note: employeeanddate is likely built as a cross-product
 #'   #       join of an employee table and set of dates of interest
 #'   #       before getting to the join controller step.  We call
@@ -514,8 +513,7 @@ topoSortTables <- function(columnJoinPlan, leftTableName,
 #' @examples
 #'
 #'
-#' if (requireNamespace("RSQLite", quietly = TRUE) &&
-#'   requireNamespace("dbplyr", quietly = TRUE)) {
+#' if (requireNamespace("RSQLite", quietly = TRUE)) {
 #'   # note: employeeanddate is likely built as a cross-product
 #'   #       join of an employee table and set of dates of interest
 #'   #       before getting to the join controller step.  We call
@@ -812,7 +810,7 @@ inspectDescrAndJoinPlan <- function(tDesc, columnJoinPlan,
 buildJoinPlan <- function(tDesc,
                           ...,
                           check= TRUE) {
-  n <- function(...) {} # declare not an unbound ref
+  n <- dplyr::n # declare not an unbound ref
   count <- NULL # declare not an unbound ref
   ntab <- replyr_nrow(tDesc)
   if(length(unique(tDesc$tableName))!=ntab) {
