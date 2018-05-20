@@ -1,5 +1,10 @@
 
-# replyr 0.9.3 2018-04-12
+# replyr 0.9.5 2018-05-20
+
+ * Remove diagram rendering in vingettes.
+ * Get rid of eval() calls.
+ 
+# replyr 0.9.4 2018-04-12
 
  * Try to avoid the API breakage dplyr 0.7.5 is sending out.
 

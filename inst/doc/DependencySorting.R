@@ -53,31 +53,6 @@ if(!is.null(sorted)) {
                                                  sorted$columnJoinPlan)))
 }
 
-## ----render1, eval=execute_vignette--------------------------------------
-# requireNamespace checks just for strict warning hygiene in vignette
-if(!is.null(sorted)) {
-  have <- c(
-    requireNamespace('DiagrammeR', quietly = TRUE),
-    requireNamespace('htmlwidgets', quietly = TRUE),
-    requireNamespace('webshot', quietly = TRUE),
-    requireNamespace('magick', quietly = TRUE),
-    requireNamespace('grid', quietly = TRUE)
-  )
-  if(all(have)) {
-    tryCatch(
-      {
-        png <- sorted$columnJoinPlan %>%
-          makeJoinDiagramSpec() %>%
-          renderJoinDiagram()
-        if(!is.null(png)) {
-          grid::grid.raster(png)
-        }
-      },
-      error = function(e) { warning(e); NULL}
-    )
-  }
-}
-
 ## ----steps, eval=execute_vignette----------------------------------------
 if(!is.null(sorted)) {
   print("join plan execution log")

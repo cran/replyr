@@ -96,29 +96,6 @@ if(!is.null(inspectDescrAndJoinPlan(tDesc, columnJoinPlan))) {
 print(columnJoinPlan %>% 
         select(tableName, sourceColumn, resultColumn, isKey, want))
 
-## ----render1, eval=execute_vignette--------------------------------------
-# requireNamespace checks just for strict warning hygiene in vignette
-have <- c(
-  requireNamespace('DiagrammeR', quietly = TRUE),
-  requireNamespace('htmlwidgets', quietly = TRUE),
-  requireNamespace('webshot', quietly = TRUE),
-  requireNamespace('magick', quietly = TRUE),
-  requireNamespace('grid', quietly = TRUE)
-)
-if(all(have)) {
-  tryCatch(
-    {
-      png <- columnJoinPlan %>%
-        makeJoinDiagramSpec() %>%
-        renderJoinDiagram()
-      if(!is.null(png)) {
-        grid::grid.raster(png)
-      }
-    },
-    error = function(e) { warning(e); NULL}
-  )
-}
-
 ## ----run, eval=execute_vignette------------------------------------------
 # manage the temp names as in:
 #  http://www.win-vector.com/blog/2017/06/managing-intermediate-results-when-using-rsparklyr/
