@@ -1,4 +1,8 @@
 
+# replyr 0.9.6 2018-06-23
+
+ * Remove ::: usage.
+
 # replyr 0.9.5 2018-05-20
 
  * Remove diagram rendering in vingettes.

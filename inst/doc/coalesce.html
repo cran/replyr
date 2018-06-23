@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2018-05-20" />
+<meta name="date" content="2018-06-23" />
 
 <title>coalesce</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">coalesce</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2018-05-20</em></h4>
+<h4 class="date"><em>2018-06-23</em></h4>
 
 
 
@@ -209,9 +209,9 @@ s &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">DBI<span class="op">::</span><span class="kw">dbDisconnect</span>(my_db)
 <span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>())
 <span class="kw">gc</span>()</code></pre></div>
-<pre><code>##           used (Mb) gc trigger (Mb) max used (Mb)
-## Ncells  800279 42.8    1442291 77.1  1168576 62.5
-## Vcells 1433015 11.0    2552219 19.5  1822603 14.0</code></pre>
+<pre><code>##           used (Mb) gc trigger (Mb) limit (Mb) max used (Mb)
+## Ncells  878528 47.0    1722901 92.1         NA  1259112 67.3
+## Vcells 1759372 13.5    8388608 64.0      16384  2382687 18.2</code></pre>
 
 
 

@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2018-05-20" />
+<meta name="date" content="2018-06-23" />
 
 <title>replyr</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">replyr</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2018-05-20</em></h4>
+<h4 class="date"><em>2018-06-23</em></h4>
 
 
 
@@ -274,7 +274,7 @@ replyr<span class="op">::</span><span class="kw">replyr_summary</span>(dRemote)
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">'dplyr'</span>)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">values &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">2</span>)
 dRemote <span class="op">%&gt;%</span><span class="st"> </span>replyr<span class="op">::</span><span class="kw">replyr_filter</span>(<span class="st">'x'</span>, values)
- <span class="co">#  # Source:   table&lt;replyr_filter_94724497538019281115_0000000001&gt; [?? x 3]</span>
+ <span class="co">#  # Source:   table&lt;replyr_filter_68384621589229522546_0000000001&gt; [?? x 3]</span>
  <span class="co">#  # Database: sqlite 3.22.0 [:memory:]</span>
  <span class="co">#        x     y z    </span>
  <span class="co">#    &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;</span>
@@ -318,9 +318,9 @@ dRemote <span class="op">%&gt;%</span><span class="st"> </span>replyr<span class
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">DBI<span class="op">::</span><span class="kw">dbDisconnect</span>(my_db)
 <span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>())
 <span class="kw">gc</span>()
- <span class="co">#            used (Mb) gc trigger (Mb) max used (Mb)</span>
- <span class="co">#  Ncells  965806 51.6    1770749 94.6  1770749 94.6</span>
- <span class="co">#  Vcells 1674612 12.8    3142662 24.0  2397585 18.3</span></code></pre></div>
+ <span class="co">#            used (Mb) gc trigger (Mb) limit (Mb) max used (Mb)</span>
+ <span class="co">#  Ncells 1060891 56.7    1722901 92.1         NA  1722901 92.1</span>
+ <span class="co">#  Vcells 2069817 15.8    8388608 64.0      16384  2993912 22.9</span></code></pre></div>
 </div>
 
 
