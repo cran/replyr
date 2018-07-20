@@ -1,8 +1,8 @@
 Package: replyr
 Type: Package
 Title: Patches to Use 'dplyr' on Remote Data Sources
-Version: 0.9.6
-Date: 2018-06-23
+Version: 0.9.7
+Date: 2018-07-20
 Authors@R: c(
     person("John", "Mount", email = "jmount@win-vector.com", role = c("aut", "cre")),
     person("Nina", "Zumel", email = "nzumel@win-vector.com", role = c("aut")),
@@ -29,9 +29,9 @@ Suggests: testthat, knitr, rmarkdown, sparklyr, ggplot2, igraph,
 VignetteBuilder: knitr
 ByteCompile: true
 NeedsCompilation: no
-Packaged: 2018-06-23 18:01:35 UTC; johnmount
+Packaged: 2018-07-20 15:20:37 UTC; johnmount
 Author: John Mount [aut, cre],
   Nina Zumel [aut],
   Win-Vector LLC [cph]
 Repository: CRAN
-Date/Publication: 2018-06-23 18:10:31 UTC
+Date/Publication: 2018-07-20 15:50:02 UTC

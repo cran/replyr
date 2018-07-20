@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2018-06-23" />
+<meta name="date" content="2018-07-20" />
 
 <title>Parametric Programming in R</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Parametric Programming in R</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2018-06-23</em></h4>
+<h4 class="date"><em>2018-07-20</em></h4>
 
 
 
@@ -86,7 +86,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>We used the fact that we are looking at the data interactively to note the only column is “<code>x</code>”, and then picked “<code>x_isNA</code>” as our result name. If we want to use <a href="https://CRAN.R-project.org/package=dplyr"><code>dplyr</code></a> the notation remains straightforward:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;dplyr&quot;</span>)
 <span class="kw">packageVersion</span>(<span class="st">&quot;dplyr&quot;</span>)
- <span class="co">#  [1] '0.7.5'</span>
+ <span class="co">#  [1] '0.7.6'</span>
 
 <span class="kw">mutate</span>(d, <span class="dt">x_isNA =</span> <span class="kw">is.na</span>(x))
  <span class="co">#     x x_isNA</span>
