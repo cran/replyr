@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2018-09-18" />
+<meta name="date" content="2019-01-02" />
 
 <title>replyr</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">replyr</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2018-09-18</em></h4>
+<h4 class="date"><em>2019-01-02</em></h4>
 
 
 
@@ -274,7 +274,7 @@ replyr<span class="op">::</span><span class="kw">replyr_summary</span>(dRemote)
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">'dplyr'</span>)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">values &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">2</span>)
 dRemote <span class="op">%&gt;%</span><span class="st"> </span>replyr<span class="op">::</span><span class="kw">replyr_filter</span>(<span class="st">'x'</span>, values)
- <span class="co">#  # Source:   table&lt;replyr_filter_32791339542428848703_0000000001&gt; [?? x 3]</span>
+ <span class="co">#  # Source:   table&lt;replyr_filter_92280506922429535374_0000000001&gt; [?? x 3]</span>
  <span class="co">#  # Database: sqlite 3.22.0 [:memory:]</span>
  <span class="co">#        x     y z    </span>
  <span class="co">#    &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;</span>
@@ -319,8 +319,8 @@ dRemote <span class="op">%&gt;%</span><span class="st"> </span>replyr<span class
 <span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>())
 <span class="kw">gc</span>()
  <span class="co">#            used (Mb) gc trigger (Mb) limit (Mb) max used (Mb)</span>
- <span class="co">#  Ncells 1070558 57.2    1729858 92.4         NA  1729858 92.4</span>
- <span class="co">#  Vcells 2097080 16.0    8388608 64.0      16384  3149606 24.1</span></code></pre></div>
+ <span class="co">#  Ncells 1101944 58.9    1816141   97         NA  1816141 97.0</span>
+ <span class="co">#  Vcells 2215182 17.0    8388608   64      16384  3157740 24.1</span></code></pre></div>
 </div>
 
 
