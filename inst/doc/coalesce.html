@@ -12,14 +12,14 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2019-01-02" />
+<meta name="date" content="2019-03-31" />
 
 <title>coalesce</title>
 
 
 
 <style type="text/css">code{white-space: pre;}</style>
-<style type="text/css">
+<style type="text/css" data-origin="pandoc">
 div.sourceCode { overflow-x: auto; }
 table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
   margin: 0; padding: 0; vertical-align: baseline; border: none; }
@@ -55,7 +55,29 @@ code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
 code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
 code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
 code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+
 </style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
 
 
 
@@ -70,7 +92,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">coalesce</h1>
 <h4 class="author"><em>John Mount</em></h4>
-<h4 class="date"><em>2019-01-02</em></h4>
+<h4 class="date"><em>2019-03-31</em></h4>
 
 
 
@@ -178,7 +200,7 @@ replyr<span class="op">::</span><span class="kw">replyr_coalesce</span>(dbData, 
 ##  8  2010     0 a    
 ##  9  2005     0 b    
 ## 10  2006     0 b    
-## # ... with more rows</code></pre>
+## # … with more rows</code></pre>
 <p>As we mentioned <code>replyr_coalesce</code> only alter column that it has added. Under this convention the column “<code>n</code>” is not zeroed in the “<code>c</code>-row”.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">d &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">x=</span><span class="kw">c</span>(<span class="st">'a'</span>,<span class="st">'c'</span>), <span class="dt">n=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="ot">NA</span>), 
                 <span class="dt">stringsAsFactors=</span><span class="ot">FALSE</span>)
@@ -210,8 +232,8 @@ s &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="
 <span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>())
 <span class="kw">gc</span>()</code></pre></div>
 <pre><code>##           used (Mb) gc trigger (Mb) limit (Mb) max used (Mb)
-## Ncells  911152 48.7    1816141   97         NA  1259060 67.3
-## Vcells 1889787 14.5    8388608   64      16384  2485180 19.0</code></pre>
+## Ncells  919578 49.2    1840100 98.3         NA  1259347 67.3
+## Vcells 1928795 14.8    8388608 64.0      16384  2519516 19.3</code></pre>
 
 
 
