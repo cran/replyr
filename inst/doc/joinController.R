@@ -96,6 +96,11 @@ if(!is.null(inspectDescrAndJoinPlan(tDesc, columnJoinPlan))) {
 print(columnJoinPlan %>% 
         select(tableName, sourceColumn, resultColumn, isKey, want))
 
+## ----diagram, eval=execute_vignette--------------------------------------
+columnJoinPlan %.>%
+  makeJoinDiagramSpec(.) %.>%
+  DiagrammeR::grViz(.)
+
 ## ----run, eval=execute_vignette------------------------------------------
 # manage the temp names as in:
 #  http://www.win-vector.com/blog/2017/06/managing-intermediate-results-when-using-rsparklyr/

@@ -12,7 +12,7 @@ library("replyr")
 
 ## ----sumstat_intervals----------------------------------------------------------------------------
 sumstat_intervals = function(dframe, colname, groupcolname = NULL) {
-  mapping = list(COLNAME  =colname,
+  mapping = list(COLNAME = colname,
                  GROUPCOLNAME = groupcolname)
   let(alias = mapping,
       {

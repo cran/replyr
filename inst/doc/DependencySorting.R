@@ -53,6 +53,11 @@ if(!is.null(sorted)) {
                                                  sorted$columnJoinPlan)))
 }
 
+## ----diagram, eval=execute_vignette--------------------------------------
+sorted$columnJoinPlan %>%
+        makeJoinDiagramSpec(.) %>%
+        DiagrammeR::grViz(.)
+
 ## ----steps, eval=execute_vignette----------------------------------------
 if(!is.null(sorted)) {
   print("join plan execution log")
