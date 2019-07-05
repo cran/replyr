@@ -1,5 +1,10 @@
 ## ----setup, include=FALSE------------------------------------------------
-execute_vignette <- requireNamespace("RSQLite", quietly = TRUE)
+execute_vignette <- requireNamespace("RSQLite", quietly = TRUE) &&
+  requireNamespace("igraph", quietly = TRUE) &&
+  requireNamespace("DiagrammeR", quietly = TRUE) &&
+  requireNamespace("webshot", quietly = TRUE) 
+my_db <- NULL
+exDesc <- NULL
 if(execute_vignette) {
   my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
   RSQLite::initExtension(my_db)
@@ -38,7 +43,7 @@ print(columnJoinPlan[, c('tableName', 'sourceColumn', 'resultColumn', 'isKey')])
 ## ----check1, eval=execute_vignette---------------------------------------
 print(paste("issues:", inspectDescrAndJoinPlan(tDesc, columnJoinPlan)))
 
-## ----sort, eval=execute_vignette-----------------------------------------
+## ----sort, eval=execute_vignette, error=TRUE-----------------------------
 sorted <- NULL
 # requireNamespace checks just for strict warning hygiene in vignette
 if(requireNamespace('igraph', quietly = TRUE)) {
