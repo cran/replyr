@@ -58,7 +58,7 @@ if(!is.null(sorted)) {
                                                  sorted$columnJoinPlan)))
 }
 
-## ----diagram, eval=execute_vignette--------------------------------------
+## ----diagram, eval=execute_vignette, error=TRUE--------------------------
 sorted$columnJoinPlan %>%
         makeJoinDiagramSpec(.) %>%
         DiagrammeR::grViz(.)
