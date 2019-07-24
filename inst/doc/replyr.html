@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2019-07-13" />
+<meta name="date" content="2019-07-24" />
 
 <title>replyr</title>
 
@@ -303,7 +303,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 <h1 class="title toc-ignore">replyr</h1>
 <h4 class="author">John Mount</h4>
-<h4 class="date">2019-07-13</h4>
+<h4 class="date">2019-07-24</h4>
 
 
 
@@ -504,7 +504,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1"><span class="kw">library</span>(<span class="st">'dplyr'</span>)</a></code></pre></div>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1">values &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">2</span>)</a>
 <a class="sourceLine" id="cb10-2" data-line-number="2">dRemote <span class="op">%&gt;%</span><span class="st"> </span>replyr<span class="op">::</span><span class="kw">replyr_filter</span>(<span class="st">'x'</span>, values)</a>
-<a class="sourceLine" id="cb10-3" data-line-number="3"> <span class="co">#  # Source:   table&lt;replyr_filter_81830846930330725883_0000000001&gt; [?? x 3]</span></a>
+<a class="sourceLine" id="cb10-3" data-line-number="3"> <span class="co">#  # Source:   table&lt;replyr_filter_21168497247614977215_0000000001&gt; [?? x 3]</span></a>
 <a class="sourceLine" id="cb10-4" data-line-number="4"> <span class="co">#  # Database: sqlite 3.22.0 [:memory:]</span></a>
 <a class="sourceLine" id="cb10-5" data-line-number="5"> <span class="co">#        x     y z    </span></a>
 <a class="sourceLine" id="cb10-6" data-line-number="6"> <span class="co">#    &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;</span></a>
@@ -549,8 +549,8 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <a class="sourceLine" id="cb11-2" data-line-number="2"><span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>())</a>
 <a class="sourceLine" id="cb11-3" data-line-number="3"><span class="kw">gc</span>()</a>
 <a class="sourceLine" id="cb11-4" data-line-number="4"> <span class="co">#            used (Mb) gc trigger  (Mb) limit (Mb) max used  (Mb)</span></a>
-<a class="sourceLine" id="cb11-5" data-line-number="5"> <span class="co">#  Ncells 1237241 66.1    2229864 119.1         NA  2229864 119.1</span></a>
-<a class="sourceLine" id="cb11-6" data-line-number="6"> <span class="co">#  Vcells 2154302 16.5    8388608  64.0      16384  3333510  25.5</span></a></code></pre></div>
+<a class="sourceLine" id="cb11-5" data-line-number="5"> <span class="co">#  Ncells 1237244 66.1    2229332 119.1         NA  2229332 119.1</span></a>
+<a class="sourceLine" id="cb11-6" data-line-number="6"> <span class="co">#  Vcells 2154307 16.5    8388608  64.0      16384  3348001  25.6</span></a></code></pre></div>
 </div>
 
 
