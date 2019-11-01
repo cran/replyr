@@ -1,8 +1,7 @@
 ## ----setup, include=FALSE------------------------------------------------
 execute_vignette <- requireNamespace("RSQLite", quietly = TRUE) &&
   requireNamespace("igraph", quietly = TRUE) &&
-  requireNamespace("DiagrammeR", quietly = TRUE) &&
-  requireNamespace("webshot", quietly = TRUE) 
+  requireNamespace("DiagrammeR", quietly = TRUE)
 my_db <- NULL
 exDesc <- NULL
 if(execute_vignette) {
@@ -48,9 +47,13 @@ sorted <- NULL
 # requireNamespace checks just for strict warning hygiene in vignette
 if(requireNamespace('igraph', quietly = TRUE)) {
   sorted <- topoSortTables(columnJoinPlan, 'employeeanddate')
-  plot(sorted$dependencyGraph)
-  print(sorted$tableOrder)
 }
+
+## ----sortplt, eval=FALSE, error=TRUE-------------------------------------
+#  if(!is.null(sorted)) {
+#    plot(sorted$dependencyGraph)
+#    print(sorted$tableOrder)
+#  }
 
 ## ----check2, eval=execute_vignette---------------------------------------
 if(!is.null(sorted)) {
@@ -58,10 +61,10 @@ if(!is.null(sorted)) {
                                                  sorted$columnJoinPlan)))
 }
 
-## ----diagram, eval=execute_vignette, error=TRUE--------------------------
-sorted$columnJoinPlan %>%
-        makeJoinDiagramSpec(.) %>%
-        DiagrammeR::grViz(.)
+## ----diagram, eval=FALSE, error=TRUE-------------------------------------
+#  sorted$columnJoinPlan %>%
+#          makeJoinDiagramSpec(.) %>%
+#          DiagrammeR::grViz(.)
 
 ## ----steps, eval=execute_vignette----------------------------------------
 if(!is.null(sorted)) {

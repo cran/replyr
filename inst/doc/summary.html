@@ -7,12 +7,13 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <meta name="author" content="John Mount" />
 
-<meta name="date" content="2019-07-24" />
+<meta name="date" content="2019-11-01" />
 
 <title>summary</title>
 
@@ -96,7 +97,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -303,7 +304,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 <h1 class="title toc-ignore">summary</h1>
 <h4 class="author">John Mount</h4>
-<h4 class="date">2019-07-24</h4>
+<h4 class="date">2019-11-01</h4>
 
 
 
@@ -342,16 +343,19 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <a class="sourceLine" id="cb1-31" data-line-number="31">}</a>
 <a class="sourceLine" id="cb1-32" data-line-number="32"> <span class="co">#  Observations: ??</span></a>
 <a class="sourceLine" id="cb1-33" data-line-number="33"> <span class="co">#  Variables: 2</span></a>
-<a class="sourceLine" id="cb1-34" data-line-number="34"> <span class="co">#  Database: sqlite 3.22.0 [:memory:]</span></a>
+<a class="sourceLine" id="cb1-34" data-line-number="34"> <span class="co">#  Database: sqlite 3.29.0 [:memory:]</span></a>
 <a class="sourceLine" id="cb1-35" data-line-number="35"> <span class="co">#  $ x &lt;chr&gt; NA, &quot;b&quot;</span></a>
 <a class="sourceLine" id="cb1-36" data-line-number="36"> <span class="co">#  $ y &lt;dbl&gt; 1, NA</span></a></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">DBI<span class="op">::</span><span class="kw">dbDisconnect</span>(my_db)</a>
 <a class="sourceLine" id="cb2-2" data-line-number="2"><span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">ls</span>())</a>
 <a class="sourceLine" id="cb2-3" data-line-number="3"><span class="kw">gc</span>()</a>
 <a class="sourceLine" id="cb2-4" data-line-number="4"> <span class="co">#            used (Mb) gc trigger  (Mb) limit (Mb) max used  (Mb)</span></a>
-<a class="sourceLine" id="cb2-5" data-line-number="5"> <span class="co">#  Ncells 1238465 66.2    2229332 119.1         NA  2229332 119.1</span></a>
-<a class="sourceLine" id="cb2-6" data-line-number="6"> <span class="co">#  Vcells 2152460 16.5    8388608  64.0      16384  3348001  25.6</span></a></code></pre></div>
+<a class="sourceLine" id="cb2-5" data-line-number="5"> <span class="co">#  Ncells 1204114 64.4    2144078 114.6         NA  2144078 114.6</span></a>
+<a class="sourceLine" id="cb2-6" data-line-number="6"> <span class="co">#  Vcells 2075703 15.9    8388608  64.0      16384  3090400  23.6</span></a></code></pre></div>
 
+
+
+<!-- code folding -->
 
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

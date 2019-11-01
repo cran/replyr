@@ -6,8 +6,7 @@ library("replyr")
 packageVersion("replyr")
 execute_vignette <- requireNamespace("RSQLite", quietly = TRUE) &&
   requireNamespace("igraph", quietly = TRUE) &&
-  requireNamespace("DiagrammeR", quietly = TRUE) &&
-  requireNamespace("webshot", quietly = TRUE)
+  requireNamespace("DiagrammeR", quietly = TRUE)
 
 ## ----data, eval=execute_vignette-----------------------------------------
 # load notional example data
@@ -99,10 +98,10 @@ if(!is.null(inspectDescrAndJoinPlan(tDesc, columnJoinPlan))) {
 print(columnJoinPlan %>% 
         select(tableName, sourceColumn, resultColumn, isKey, want))
 
-## ----diagram, eval=execute_vignette, error=TRUE--------------------------
-columnJoinPlan %.>%
-  makeJoinDiagramSpec(.) %.>%
-  DiagrammeR::grViz(.)
+## ----diagram, eval=FALSE, error=TRUE-------------------------------------
+#  columnJoinPlan %.>%
+#    makeJoinDiagramSpec(.) %.>%
+#    DiagrammeR::grViz(.)
 
 ## ----run, eval=execute_vignette------------------------------------------
 # manage the temp names as in:
